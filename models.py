@@ -7,14 +7,15 @@ from keras.datasets import mnist
 from keras.losses import mse, binary_crossentropy
 from keras.utils import plot_model
 from keras import backend as K
-
+from keras.callbacks import ModelCheckpoint
+from keras.optimizers import RMSprop
 
 import numpy as np
 
 import os
 import matplotlib.pyplot as plt
 
-
+from dataloader import dataloader
 
 # reparameterization trick
 # instead of sampling from Q(z|X), sample eps = N(0,I)
@@ -140,7 +141,7 @@ def vae_model(original_dim=32*32,input_shape = (32*32,), intermediate_dim = 512,
 
     return encoder, decoder, vae, inputs, outputs
 
-def vaegan_model(original_dim=(64,64,3), batch_size =128, latent_dim = 2048, epochs=50):
+def vaegan_model(original_dim=(64,64,3), batch_size =64, latent_dim = 2048, epochs=50):
     '''VAE model.'''
     # VAE model = encoder + decoder
     # build encoder model
@@ -214,7 +215,7 @@ def vaegan_model(original_dim=(64,64,3), batch_size =128, latent_dim = 2048, epo
     kl_loss *= -0.5
     vae_loss = K.mean(reconstruction_loss + kl_loss)
     vae.add_loss(vae_loss)
-    vae.compile(optimizer='adam')
+    vae.compile(optimizer=RMSprop(lr=0.0003))
     vae.summary()
     plot_model(vae,
                to_file='vae.png',
@@ -258,10 +259,51 @@ def vae_train(batch_size = 128,epochs=50):
                      batch_size=batch_size,
                      model_name="vae_mlp")
 
-vaegan_train():
+def vaegan_train(batch_size = 64,epochs=10):
+    ''' TRAIN VAEGAN model on CELEBA'''
+    num_images = 202599
+    num_batches = num_images//batch_size
+    print('num_batches', num_batches)
+
+
+    '''
+    # MNIST dataset
+    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+    image_size = x_train.shape[1]
+    original_dim = image_size * image_size
+    x_train = np.reshape(x_train, [-1, original_dim])
+    x_test = np.reshape(x_test, [-1, original_dim])
+    x_train = x_train.astype('float32') / 255
+    x_test = x_test.astype('float32') / 255
+    print('original_dim: ', original_dim)
+    input_shape = (original_dim, )
+    '''
+    encoder, decoder, vae = vaegan_model()
+
+    models = (encoder, decoder)
+    #data = (x_test, y_test)
+
+    chkpath="/home/daryl/EE298Z/vaegan/checkpoints/chkpt-{epoch:02d}.hdf5"
+    checkpoint = ModelCheckpoint(chkpath, verbose=1)
+
+    vae.fit_generator(dataloader(),
+                    epochs=epochs, steps_per_epoch=num_batches,
+                    verbose=1, callbacks =[checkpoint]
+                    )
+    vae.save_weights('vae_mlp_mnist.h5')
+
+    plot_results(models,
+                     data,
+                     batch_size=batch_size,
+                     model_name="vae_mlp")
+
 
 def main():
-    #vae_train()
+    some_gen = dataloader()
+    a,b = next(some_gen)
+    print('a', type(a))
+    vaegan_train()
     #encoder, decoder, vae = vaegan_model()
 
 if __name__ == '__main__':
