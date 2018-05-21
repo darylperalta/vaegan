@@ -298,12 +298,21 @@ def vaegan_train(batch_size = 64,epochs=10):
                      batch_size=batch_size,
                      model_name="vae_mlp")
 
+def vaegan_predict(weights_path = 'vae_mlp_mnist.h5', latent_dim = 2048):
+    encoder, decoder, vae = vaegan_model()
+
+    vae.load_weights(weights_path)
+    z = np.random.normal(size=(1,latent_dim))
+    out = decoder.predict(z)
+    print('predict', out.shape)
+    cv2.imshow('asdfa', out[0])
 
 def main():
-    some_gen = dataloader()
-    a,b = next(some_gen)
-    print('a', type(a))
-    vaegan_train()
+    #some_gen = dataloader()
+    #a,b = next(some_gen)
+    #print('a', type(a))
+    #vaegan_train()
+    vaegan_predict()
     #encoder, decoder, vae = vaegan_model()
 
 if __name__ == '__main__':
