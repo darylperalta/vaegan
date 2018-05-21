@@ -300,14 +300,16 @@ def vaegan_train(batch_size = 64,epochs=10):
 
 def vaegan_predict(weights_path = 'vae_mlp_mnist.h5', latent_dim = 2048):
     encoder, decoder, vae = vaegan_model()
-
+    batch = 5
     vae.load_weights(weights_path)
-    z = np.random.normal(size=(1,latent_dim))
+    z = np.random.normal(size=(batch,latent_dim))
     print('z shape', z.shape)
     out = decoder.predict(z)
-    print('predict', out.shape)
-    cv2.imshow('asdfa', out[0])
-    cv2.waitKey(0)
+    for i in range(batch):
+
+        print('predict', out.shape)
+        cv2.imshow('asdfa', out[i])
+        cv2.waitKey(0)
 
 def main():
     #some_gen = dataloader()
