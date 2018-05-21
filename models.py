@@ -11,7 +11,7 @@ from keras.callbacks import ModelCheckpoint
 from keras.optimizers import RMSprop
 
 import numpy as np
-
+import cv2
 import os
 import matplotlib.pyplot as plt
 
@@ -303,6 +303,7 @@ def vaegan_predict(weights_path = 'vae_mlp_mnist.h5', latent_dim = 2048):
 
     vae.load_weights(weights_path)
     z = np.random.normal(size=(1,latent_dim))
+    print('z shape', z.shape)
     out = decoder.predict(z)
     print('predict', out.shape)
     cv2.imshow('asdfa', out[0])
