@@ -307,6 +307,7 @@ def vaegan_predict(weights_path = 'vae_mlp_mnist.h5', latent_dim = 2048):
     out = decoder.predict(z)
     print('predict', out.shape)
     cv2.imshow('asdfa', out[0])
+    cv2.waitKey(0)
 
 def main():
     #some_gen = dataloader()
