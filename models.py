@@ -228,6 +228,42 @@ def vaegan_model(original_dim=(64,64,3), batch_size =64, latent_dim = 2048, epoc
 
     return encoder, decoder, vae
 
+def vae_discriminator_model(original_dim=(64,64,3)):
+
+    input_shape = original_dim
+    input = Input(shape=input_shape)
+    x = Conv2D(32,(5,5), strides =(2,2),padding='same')(input)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+
+    x = Conv2D(128,(5,5), strides =(2,2),padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+
+    x = Conv2D(256,(5,5), strides =(2,2),padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+
+    x = Conv2D(256,(5,5), strides =(2,2),padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+
+    x = Flatten()(x)
+
+    x = Dense(512)(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+
+    x = Dense(1)(x)
+    output = Activation('sigmoid')(x)
+
+    discriminator = Model(input, output, name='discriminator')
+    discriminator.summary()
+    plot_model(discriminator, to_file='discriminator.png', show_shapes=True)
+
+
+    return discriminator
+
 def vae_train(batch_size = 128,epochs=50):
     ''' Test VAE model on mnist'''
     # MNIST dataset
@@ -354,9 +390,10 @@ def main():
     #some_gen = dataloader()
     #a,b = next(some_gen)
     #print('a', type(a))
-    vaegan_train(epochs=10,final_chk='vae_mse.h5', mse_flag=True)
+    #vaegan_train(epochs=10,final_chk='vae_mse.h5', mse_flag=True)
     #vaegan_predict(save_out=False)
     #encoder, decoder, vae = vaegan_model()
+    vae_discriminator_model()
 
 if __name__ == '__main__':
     main()
