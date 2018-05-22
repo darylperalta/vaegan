@@ -142,7 +142,7 @@ def vae_model(original_dim=32*32,input_shape = (32*32,), intermediate_dim = 512,
 
     return encoder, decoder, vae, inputs, outputs
 
-def vaegan_model(original_dim=(64,64,3), batch_size =64, latent_dim = 2048, epochs=50):
+def vaegan_model(original_dim=(64,64,3), batch_size =64, latent_dim = 2048, epochs=50, mse_flag=True):
     '''VAE model.'''
     # VAE model = encoder + decoder
     # build encoder model
@@ -208,8 +208,12 @@ def vaegan_model(original_dim=(64,64,3), batch_size =64, latent_dim = 2048, epoc
     vae = Model(inputs, outputs, name='vae_mlp')
 
     #outputs = Dense(original_dim, activation='sigmoid')(x)
-    reconstruction_loss = binary_crossentropy(inputs,
-                                              outputs)
+    if mse_flag:
+        reconstruction_loss = mse(inputs,
+                              outputs)
+    else:
+        reconstruction_loss = binary_crossentropy(inputs,
+                                                  outputs)
     reconstruction_loss *= original_dim[0]*original_dim[1]*original_dim[2]
     kl_loss = 1 + z_log_var - K.square(z_mean) - K.exp(z_log_var)
     kl_loss = K.sum(kl_loss, axis=-1)
@@ -260,13 +264,13 @@ def vae_train(batch_size = 128,epochs=50):
                      batch_size=batch_size,
                      model_name="vae_mlp")
 
-def vaegan_train(batch_size = 64,epochs=10):
+def vaegan_train(batch_size = 64, epochs=10, final_chk = 'vae.h5',mse_flag=True):
     ''' TRAIN VAEGAN model on CELEBA'''
     num_images = 202599
     num_batches = num_images//batch_size
     print('num_batches', num_batches)
 
-
+    #print('mse: ', mse)
     '''
     # MNIST dataset
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -280,7 +284,7 @@ def vaegan_train(batch_size = 64,epochs=10):
     print('original_dim: ', original_dim)
     input_shape = (original_dim, )
     '''
-    encoder, decoder, vae = vaegan_model()
+    encoder, decoder, vae = vaegan_model(mse_flag=mse_flag)
 
     models = (encoder, decoder)
     #data = (x_test, y_test)
@@ -292,7 +296,8 @@ def vaegan_train(batch_size = 64,epochs=10):
                     epochs=epochs, steps_per_epoch=num_batches,
                     verbose=1, callbacks =[checkpoint]
                     )
-    vae.save_weights('vae_mlp_mnist.h5')
+
+    vae.save_weights(final_chk)
 
     plot_results(models,
                      data,
@@ -307,7 +312,7 @@ def vaegan_predict(weights_path = 'vae_mlp_mnist.h5', datapath = '/home/daryl/da
     vae.load_weights(weights_path)
 
     '''Generator prediction.'''
-    
+
     z = np.random.normal(size=(batch,latent_dim))
     print('z shape', z.shape)
     out = decoder.predict(z)
@@ -349,8 +354,8 @@ def main():
     #some_gen = dataloader()
     #a,b = next(some_gen)
     #print('a', type(a))
-    #vaegan_train()
-    vaegan_predict(save_out=False)
+    vaegan_train(epochs=10,final_chk='vae_mse.h5', mse_flag=True)
+    #vaegan_predict(save_out=False)
     #encoder, decoder, vae = vaegan_model()
 
 if __name__ == '__main__':
