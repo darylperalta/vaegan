@@ -26,6 +26,7 @@ from keras.optimizers import RMSprop
 from keras.models import Model
 from keras.datasets import mnist
 from keras.models import load_model
+from keras.utils import plot_model
 
 import numpy as np
 import math
@@ -153,8 +154,8 @@ def train(models, params):
     batch_size, latent_size, train_steps, model_name = params
     num_images = 202599
     num_batches = num_images//batch_size
-    #save_interval = 500
-    save_interval = num_batches
+    save_interval = 633
+    #save_interval = num_batches
     noise_input = np.random.uniform(-1.0, 1.0, size=[16, latent_size])
     for i in range(train_steps):
         # Random real images
@@ -183,12 +184,12 @@ def train(models, params):
         loss = metrics[0]
         acc = metrics[1]
         log = "%s [adversarial loss: %f, acc: %f]" % (log, loss, acc)
-        #print(log)
+        print(log)
         if (i + 1) % save_interval == 0:
             print('epoch: '+str((i+1)//save_interval))
             print(log)
             #filename = os.path.join(model_name, "check%05d.png" % step)
-            filename = 'checkpoints/'+'chk_dcgan'+str((i+1)//save_interval)+'.hdf5'
+            filename = 'checkpoints/'+'chk_dcgan'+str((i+1))+'.hdf5'
             '''
             if (i + 1) == train_steps:
                 show = True
@@ -262,8 +263,8 @@ def build_and_train_models():
     num_images = 202599
     epochs = 10
     train_steps = num_images*10
-    lr = 0.0003
-    decay = 6e-8
+    lr = 0.0003*0.5
+    decay = 6e-8*0.5
     input_shape = (image_size, image_size, 3)
 
     # Build discriminator model
@@ -298,7 +299,7 @@ def build_and_train_models():
                         optimizer=optimizer,
                         metrics=['accuracy'])
     adversarial.summary()
-
+    plot_model(adversarial, to_file='adversarial.png', show_shapes=True)
     # Train Discriminator and Adversarial Networks
     models = (generator, discriminator, adversarial)
     params = (batch_size, latent_size, train_steps, model_name)
