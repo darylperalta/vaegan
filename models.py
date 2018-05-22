@@ -14,6 +14,7 @@ import numpy as np
 import cv2
 import os
 import matplotlib.pyplot as plt
+import glob
 
 from dataloader import dataloader
 
@@ -298,12 +299,15 @@ def vaegan_train(batch_size = 64,epochs=10):
                      batch_size=batch_size,
                      model_name="vae_mlp")
 
-def vaegan_predict(weights_path = 'vae_mlp_mnist.h5', latent_dim = 2048):
+def vaegan_predict(weights_path = 'vae_mlp_mnist.h5', datapath = '/home/daryl/datasets/img_align_celeba',latent_dim = 2048, save_out=True):
     encoder, decoder, vae = vaegan_model()
     batch = 10
     out_dir = 'vaegan_vae_out'
 
     vae.load_weights(weights_path)
+
+    '''Generator prediction.'''
+    
     z = np.random.normal(size=(batch,latent_dim))
     print('z shape', z.shape)
     out = decoder.predict(z)
@@ -313,14 +317,40 @@ def vaegan_predict(weights_path = 'vae_mlp_mnist.h5', latent_dim = 2048):
         print('predict', out.shape)
         cv2.imshow('asdfa', out[i])
         cv2.waitKey(0)
-        cv2.imwrite(out_dir+'/'+'out'+str(i)+'.jpg', (out[i]*255).astype(np.uint8))
+        if save_out == True:
+            cv2.imwrite(out_dir+'/'+'out'+str(i)+'.jpg', (out[i]*255).astype(np.uint8))
+
+    '''Autoencoder prediction.'''
+    image_size =64
+    image_list = glob.glob(os.path.join(datapath,'*.jpg'))
+
+    np.random.shuffle(image_list)
+    batch_image_list = image_list[:batch]
+    batch_images = np.zeros((len(batch_image_list),image_size,image_size,3),dtype=np.float32)
+    for i in range(len(batch_image_list)):
+        img_temp = cv2.imread(batch_image_list[i])
+        #cv2.imshow('temp',img_temp)
+        #cv2.waitKey(0)
+        batch_images[i,:,:,:] = cv2.resize(img_temp, (image_size,image_size))
+
+    batch_images = batch_images/255.0
+    out_vae = vae.predict(batch_images)
+
+    for i in range(batch):
+        cv2.imshow('Input', batch_images[i,:,:,:])
+        cv2.waitKey(0)
+        cv2.imshow('Output', out_vae[i,:,:,:])
+        cv2.waitKey(0)
+
+
+
 
 def main():
     #some_gen = dataloader()
     #a,b = next(some_gen)
     #print('a', type(a))
     #vaegan_train()
-    vaegan_predict()
+    vaegan_predict(save_out=False)
     #encoder, decoder, vae = vaegan_model()
 
 if __name__ == '__main__':
