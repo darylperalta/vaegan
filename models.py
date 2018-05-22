@@ -349,9 +349,11 @@ def vaegan_predict(weights_path = 'vae_mlp_mnist.h5', datapath = '/home/daryl/da
 
     '''Generator prediction.'''
 
-    z = np.random.normal(size=(batch,latent_dim))
+    #z = np.random.normal(size=(batch,latent_dim))
+    z = np.random.uniform(-1.0, 1.0, size=[batch, latent_dim])
     print('z shape', z.shape)
     out = decoder.predict(z)
+    print('min', np.min(out))
     os.makedirs(out_dir, exist_ok = True)
     for i in range(batch):
 
@@ -391,9 +393,9 @@ def main():
     #a,b = next(some_gen)
     #print('a', type(a))
     #vaegan_train(epochs=10,final_chk='vae_mse.h5', mse_flag=True)
-    #vaegan_predict(save_out=False)
+    vaegan_predict(weights_path = 'checkpoints/chkpt-01.hdf 5',save_out=False)
     #encoder, decoder, vae = vaegan_model()
-    vae_discriminator_model()
+    #vae_discriminator_model()
 
 if __name__ == '__main__':
     main()
