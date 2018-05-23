@@ -344,10 +344,10 @@ def vaegan_actual_train(batch_size = 64, epochs=10, final_chk = 'vae.h5',mse_fla
     models = (encoder, decoder)
     #data = (x_test, y_test)
 
-    chkpath="/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-{epoch:02d}.hdf5"
+    chkpath="/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-negative-{epoch:02d}.hdf5"
     checkpoint = ModelCheckpoint(chkpath, verbose=1)
 
-    vae.fit_generator(dataloader(),
+    vae.fit_generator(dataloader(negative=True),
                     epochs=epochs, steps_per_epoch=num_batches,
                     verbose=1, callbacks =[checkpoint]
                     )
@@ -521,6 +521,51 @@ def vaegan_predict(weights_path = 'vae_mlp_mnist.h5', datapath = '/home/daryl/da
         cv2.imshow('Output', out_vae[i,:,:,:])
         cv2.waitKey(0)
 
+def vaegan_actual_predict(weights_path = 'vae_mlp_mnist.h5', datapath = '/home/daryl/datasets/img_align_celeba',latent_dim = 2048, save_out=True):
+    encoder, decoder, vae = vaegan_actual_model()
+    batch = 10
+    out_dir = 'vaegan_vae_out'
+
+    vae.load_weights(weights_path)
+
+    '''Generator prediction.'''
+
+    #z = np.random.normal(size=(batch,latent_dim))
+    z = np.random.uniform(-1.0, 1.0, size=[batch, latent_dim])
+    print('z shape', z.shape)
+    out = decoder.predict(z)
+    print('min', np.min(out))
+    os.makedirs(out_dir, exist_ok = True)
+    for i in range(batch):
+
+        print('predict', out.shape)
+        cv2.imshow('asdfa', out[i])
+        cv2.waitKey(0)
+        if save_out == True:
+            cv2.imwrite(out_dir+'/'+'out'+str(i)+'.jpg', (out[i]*255).astype(np.uint8))
+
+    '''Autoencoder prediction.'''
+    image_size =64
+    image_list = glob.glob(os.path.join(datapath,'*.jpg'))
+
+    np.random.shuffle(image_list)
+    batch_image_list = image_list[:batch]
+    batch_images = np.zeros((len(batch_image_list),image_size,image_size,3),dtype=np.float32)
+    for i in range(len(batch_image_list)):
+        img_temp = cv2.imread(batch_image_list[i])
+        #cv2.imshow('temp',img_temp)
+        #cv2.waitKey(0)
+        batch_images[i,:,:,:] = cv2.resize(img_temp, (image_size,image_size))
+
+    batch_images = batch_images/255.0
+    out_vae = vae.predict(batch_images)
+
+    for i in range(batch):
+        cv2.imshow('Input', batch_images[i,:,:,:])
+        cv2.waitKey(0)
+        cv2.imshow('Output', out_vae[i,:,:,:])
+        cv2.waitKey(0)
+
 
 
 
@@ -528,9 +573,10 @@ def main():
     #some_gen = dataloader()
     #a,b = next(some_gen)
     #print('a', type(a))
-    vaegan_actual_train(epochs=10,final_chk='vae_actual.h5', mse_flag=True)
+    vaegan_actual_train(epochs=10,final_chk='vae_actual_negative.h5', mse_flag=True)
+    #'/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-03.hdf5'
     #vaegan_train(epochs=10,final_chk='vae.h5', mse_flag=True)
-    #vaegan_predict(weights_path = 'checkpoints/chkpt-01.hdf 5',save_out=False)
+    #vaegan_actual_predict(weights_path = '/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-03.hdf5',latent_dim= 128,save_out=False)
     #vaegan_predict(weights_path = 'checkpoints/chkpt-01.hdf 5',save_out=False)
 
     #encoder, decoder, vae = vaegan_model()
