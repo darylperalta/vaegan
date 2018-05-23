@@ -93,8 +93,8 @@ def build_generator(latent_dim = 2048):
     x = Activation('relu')(x)
 
     x = Conv2DTranspose(3,(5,5),strides=(1,1),padding ='same')(x)
-    outputs = Activation('tanh')(x)
-
+    #outputs = Activation('tanh')(x)
+    outputs = Activation('sigmoid')(x)
     # instantiate decoder model
     decoder = Model(latent_inputs, outputs, name='decoder')
     #decoder.summary()
@@ -189,7 +189,7 @@ def train(models, params):
             print('epoch: '+str((i+1)//save_interval))
             print(log)
             #filename = os.path.join(model_name, "check%05d.png" % step)
-            filename = 'checkpoints/'+'chk_dcgan'+str((i+1))+'.hdf5'
+            filename = 'checkpoints/'+'chk-'+model_name+str((i+1))+'.hdf5'
             '''
             if (i + 1) == train_steps:
                 show = True
@@ -254,7 +254,7 @@ def build_and_train_models():
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "dcgan_celeb"
+    model_name = "dcgan_celeb_sigmoid"
     # Network parameters
     # The latent or z vector is 100-dim
     latent_size = 2048
@@ -290,7 +290,7 @@ def build_and_train_models():
     generator.summary()
 
     # Build adversarial model = generator + discriminator
-    optimizer = RMSprop(lr=lr*0.5, decay=decay*0.5)
+    optimizer = RMSprop(lr=lr*0.05, decay=decay*0.5)
     discriminator.trainable = False
     adversarial = Model(inputs,
                         discriminator(generator(inputs)),
