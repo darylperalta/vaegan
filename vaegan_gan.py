@@ -305,7 +305,7 @@ def build_and_train_models(latent_size=2048):
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "dcgan_celeb_tanh_neg_1024_leaky"
+    model_name = "dcgan_celeb_tanh_neg_1024_leaky_128"
     # Network parameters
     # The latent or z vector is 100-dim
     #latent_size = 2048
@@ -374,7 +374,7 @@ if __name__ == '__main__':
     help_ = "Load generator h5 model with trained weights"
     parser.add_argument("-g", "--generator", help=help_)
     args = parser.parse_args()
-    latent_size = 1024
+    latent_size = 128
     if args.generator:
         generator= build_generator(latent_size)
         #generator = load_model(args.generator)
