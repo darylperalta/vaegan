@@ -6,7 +6,7 @@ import os
 import numpy as np
 import cv2
 
-def dataloader(path='/home/daryl/datasets/img_align_celeba', image_size=64,batch_size =64, normalized = True):
+def dataloader(path='/home/daryl/datasets/img_align_celeba', image_size=64,batch_size =64, normalized = True, negative=False):
     """Generator to be used with model.fit_generator()."""
     '''
     print(os.path.join(path,'*.jpg'))
@@ -45,7 +45,10 @@ def dataloader(path='/home/daryl/datasets/img_align_celeba', image_size=64,batch
 
 
             if normalized:
-                batch_images = batch_images/255.0
+                if negative:
+                    batch_images = (batch_images-127.5)/127.5
+                else:
+                    batch_images = batch_images/255.0
                 #cv2.imshow('sample',batch_images[i,:,:,:])
                 #cv2.waitKey(0)
             yield batch_images, None

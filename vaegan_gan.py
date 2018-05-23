@@ -94,7 +94,7 @@ def build_generator(latent_dim = 2048):
 
     x = Conv2DTranspose(3,(5,5),strides=(1,1),padding ='same')(x)
     #outputs = Activation('tanh')(x)
-    outputs = Activation('sigmoid')(x)
+    outputs = Activation('tanh')(x)
     # instantiate decoder model
     decoder = Model(latent_inputs, outputs, name='decoder')
     #decoder.summary()
@@ -148,32 +148,55 @@ def train(models, params):
         params (list) : Networks parameters
     """
     print('Training started.')
-    generate_batch = dataloader(batch_size =64, normalized = True)
+    generate_batch = dataloader(batch_size =64, normalized = True, negative=True)
 
     generator, discriminator, adversarial = models
     batch_size, latent_size, train_steps, model_name = params
     num_images = 202599
     num_batches = num_images//batch_size
     save_interval = 633
-    #save_interval = num_batches
+    #save_interval = 5
     noise_input = np.random.uniform(-1.0, 1.0, size=[16, latent_size])
     for i in range(train_steps):
         # Random real images
         #rand_indexes = np.random.randint(0, x_train.shape[0], size=batch_size)
         #real_images = x_train[rand_indexes]
         real_images, _ = next(generate_batch)
+        '''
         # Generate fake images
         noise = np.random.uniform(-1.0, 1.0, size=[batch_size, latent_size])
         fake_images = generator.predict(noise)
+
+
+
         x = np.concatenate((real_images, fake_images))
         # Label real and fake images
-        y = np.ones([2 * batch_size, 1])
+        y = np.ones([2 * batch_size, 1])*0.9
         y[batch_size:, :] = 0
         # Train the Discriminator network
         metrics = discriminator.train_on_batch(x, y)
         loss = metrics[0]
         acc = metrics[1]
         log = "%d: [discriminator loss: %f, acc: %f]" % (i, loss, acc)
+        '''
+        y = np.ones([batch_size, 1])
+        metrics = discriminator.train_on_batch(real_images, y)
+        loss = metrics[0]
+        acc = metrics[1]
+        log = "%d: [discriminator (real) loss: %f, acc: %f]" % (i, loss, acc)
+
+        noise = np.random.uniform(-1.0, 1.0, size=[batch_size, latent_size])
+        fake_images = generator.predict(noise)
+        #x = np.concatenate((real_images, fake_images))
+        # Label real and fake images
+        y = np.zeros([batch_size, 1])
+        #y[batch_size:, :] = 0
+        metrics = discriminator.train_on_batch(fake_images, y)
+        # Train the Discriminator network
+        #metrics = discriminator.train_on_batch(x, y)
+        loss = metrics[0]
+        acc = metrics[1]
+        log = "%s: [discriminator (fake) loss: %f, acc: %f]" % (log, loss, acc)
 
         # Generate random noise
         noise = np.random.uniform(-1.0, 1.0, size=[batch_size, latent_size])
@@ -184,7 +207,25 @@ def train(models, params):
         loss = metrics[0]
         acc = metrics[1]
         log = "%s [adversarial loss: %f, acc: %f]" % (log, loss, acc)
-        print(log)
+
+        print(log+'1')
+        '''
+        metrics = adversarial.train_on_batch(noise, y)
+        noise = np.random.uniform(-1.0, 1.0, size=[batch_size, latent_size])
+        print(log+'2')
+        metrics = adversarial.train_on_batch(noise, y)
+        noise = np.random.uniform(-1.0, 1.0, size=[batch_size, latent_size])
+        print(log+'3')
+        metrics = adversarial.train_on_batch(noise, y)
+        noise = np.random.uniform(-1.0, 1.0, size=[batch_size, latent_size])
+        print(log+'4')
+        metrics = adversarial.train_on_batch(noise, y)
+        noise = np.random.uniform(-1.0, 1.0, size=[batch_size, latent_size])
+        print(log+'5')
+        metrics = adversarial.train_on_batch(noise, y)
+        noise = np.random.uniform(-1.0, 1.0, size=[batch_size, latent_size])
+        print(log+'6')
+        '''
         if (i + 1) % save_interval == 0:
             print('epoch: '+str((i+1)//save_interval))
             print(log)
@@ -202,24 +243,16 @@ def train(models, params):
                         model_name=model_name)
             '''
             generator.save_weights(filename)
+            plot_images(generator, i+1, 5, model_name,latent_size)
     generator.save(model_name + ".h5")
 
-
+'''
 def plot_images(generator,
                 noise_input,
                 show=False,
                 step=0,
                 model_name="gan"):
-    """Generate fake images and plot them
-    For visualization purposes, generate fake images
-    then plot them in a square grid
-    # Arguments
-        generator (Model): The Generator Model for fake images generation
-        noise_input (ndarray): Array of z-vectors
-        show (bool): Whether to show plot or not
-        step (int): Appended to filename of the save images
-        model_name (string): Model name
-    """
+
     os.makedirs(model_name, exist_ok=True)
     filename = os.path.join(model_name, "%05d.png" % step)
     images = generator.predict(noise_input)
@@ -243,9 +276,23 @@ def plot_images(generator,
         plt.show()
     else:
         plt.close('all')
+'''
+def plot_images(generator, steps, num_images, model_name, latent_size):
+    out_dir = model_name+'_output_img'
+    os.makedirs(out_dir, exist_ok=True)
 
+    noise_input = np.random.uniform(-1.0, 1.0, size=[num_images, latent_size])
+    images = generator.predict(noise_input)
 
-def build_and_train_models():
+    #num_images = images.shape[0]
+    image_size = images.shape[1]
+    for i in range(num_images):
+        image = np.reshape(images[i], [image_size, image_size, 3])
+        #cv2.imshow('out', image)
+        #cv2.waitKey(0)
+        cv2.imwrite(out_dir+'/'+'out'+str(steps)+'_'+str(i)+'.jpg', (image*255).astype(np.uint8))
+
+def build_and_train_models(latent_size=2048):
     # MNIST dataset
     #(x_train, _), (_, _) = mnist.load_data()
 
@@ -254,10 +301,10 @@ def build_and_train_models():
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "dcgan_celeb_sigmoid"
+    model_name = "dcgan_celeb_tanh_neg_1024_"
     # Network parameters
     # The latent or z vector is 100-dim
-    latent_size = 2048
+    #latent_size = 2048
     batch_size = 64
     #train_steps = 40000
     num_images = 202599
@@ -272,7 +319,7 @@ def build_and_train_models():
     #discriminator = build_discriminator(inputs)
     discriminator = vae_discriminator_model()
     # [1] uses Adam, but discriminator converges easily with RMSprop
-    optimizer = RMSprop(lr=lr, decay=decay)
+    optimizer = RMSprop(lr=lr*0.5, decay=decay)
     discriminator.compile(loss='binary_crossentropy',
                           optimizer=optimizer,
                           metrics=['accuracy'])
@@ -282,7 +329,7 @@ def build_and_train_models():
     # Build generator model
     input_shape = (latent_size, )
     inputs = Input(shape=input_shape, name='z_input')
-    generator = build_generator()
+    generator = build_generator(latent_size)
     #encoder, decoder, vae = vaegan_model(mse_flag=False)
     #generator = decoder
     print('generator')
@@ -290,7 +337,7 @@ def build_and_train_models():
     generator.summary()
 
     # Build adversarial model = generator + discriminator
-    optimizer = RMSprop(lr=lr*0.05, decay=decay*0.5)
+    optimizer = RMSprop(lr=lr*0.5, decay=decay)
     discriminator.trainable = False
     adversarial = Model(inputs,
                         discriminator(generator(inputs)),
@@ -306,15 +353,16 @@ def build_and_train_models():
     train(models, params)
 
 
-def test_generator(generator):
-    noise_input = np.random.uniform(-1.0, 1.0, size=[16, 2048])
+
+def test_generator(generator, lantent_size):
+    noise_input = np.random.uniform(-1.0, 1.0, size=[16, lantent_size])
     images = generator.predict(noise_input)
 
     num_images = images.shape[0]
     image_size = images.shape[1]
     for i in range(num_images):
         image = np.reshape(images[i], [image_size, image_size, 3])
-        cv2.imshow('out', image)
+        cv2.imshow('out', (image*127.5+127.5).astype(np.uint8))
         cv2.waitKey(0)
 
 if __name__ == '__main__':
@@ -322,10 +370,11 @@ if __name__ == '__main__':
     help_ = "Load generator h5 model with trained weights"
     parser.add_argument("-g", "--generator", help=help_)
     args = parser.parse_args()
+    latent_size = 1024
     if args.generator:
-        generator= build_generator()
+        generator= build_generator(latent_size)
         #generator = load_model(args.generator)
         generator.load_weights(args.generator)
-        test_generator(generator)
+        test_generator(generator,latent_size)
     else:
-        build_and_train_models()
+        build_and_train_models(latent_size)
