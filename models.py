@@ -524,7 +524,7 @@ def vaegan_predict(weights_path = 'vae_mlp_mnist.h5', datapath = '/home/daryl/da
 def vaegan_actual_predict(weights_path = 'vae_mlp_mnist.h5', datapath = '/home/daryl/datasets/img_align_celeba',latent_dim = 2048, save_out=True):
     encoder, decoder, vae = vaegan_actual_model()
     batch = 10
-    out_dir = 'vaegan_vae_out'
+    out_dir = 'vaegan_vae_out_actual_128'
 
     vae.load_weights(weights_path)
 
@@ -539,10 +539,10 @@ def vaegan_actual_predict(weights_path = 'vae_mlp_mnist.h5', datapath = '/home/d
     for i in range(batch):
 
         print('predict', out.shape)
-        cv2.imshow('asdfa', out[i])
+        cv2.imshow('asdfa', (out[i]*127.5+127.5).astype(np.uint8) )
         cv2.waitKey(0)
         if save_out == True:
-            cv2.imwrite(out_dir+'/'+'out'+str(i)+'.jpg', (out[i]*255).astype(np.uint8))
+            cv2.imwrite(out_dir+'/'+'out'+str(i)+'.jpg', (out[i]*127.5+127.5).astype(np.uint8))
 
     '''Autoencoder prediction.'''
     image_size =64
@@ -573,10 +573,10 @@ def main():
     #some_gen = dataloader()
     #a,b = next(some_gen)
     #print('a', type(a))
-    vaegan_actual_train(epochs=10,final_chk='vae_actual_negative.h5', mse_flag=True)
+    #vaegan_actual_train(epochs=10,final_chk='vae_actual_negative.h5', mse_flag=True)
     #'/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-03.hdf5'
     #vaegan_train(epochs=10,final_chk='vae.h5', mse_flag=True)
-    #vaegan_actual_predict(weights_path = '/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-03.hdf5',latent_dim= 128,save_out=False)
+    vaegan_actual_predict(weights_path = '/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-negative-10.hdf5',latent_dim= 128,save_out=True)
     #vaegan_predict(weights_path = 'checkpoints/chkpt-01.hdf 5',save_out=False)
 
     #encoder, decoder, vae = vaegan_model()
