@@ -9,6 +9,7 @@ from keras.utils import plot_model
 from keras import backend as K
 from keras.callbacks import ModelCheckpoint
 from keras.optimizers import RMSprop
+from keras.layers import LeakyReLU
 
 import numpy as np
 import cv2
@@ -234,25 +235,30 @@ def vae_discriminator_model(original_dim=(64,64,3)):
     input = Input(shape=input_shape)
     x = Conv2D(32,(5,5), strides =(2,2),padding='same')(input)
     x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    #x = Activation('relu')(x)
+    x = LeakyReLU(alpha = 0.2)(x)
 
     x = Conv2D(128,(5,5), strides =(2,2),padding='same')(x)
     x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    #x = Activation('relu')(x)
+    x = LeakyReLU(alpha = 0.2)(x)
 
     x = Conv2D(256,(5,5), strides =(2,2),padding='same')(x)
     x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    #x = Activation('relu')(x)
+    x = LeakyReLU(alpha = 0.2)(x)
 
     x = Conv2D(256,(5,5), strides =(2,2),padding='same')(x)
     x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    #x = Activation('relu')(x)
+    x = LeakyReLU(alpha = 0.2)(x)
 
     x = Flatten()(x)
 
     x = Dense(512)(x)
     x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    #x = Activation('relu')(x)
+    x = LeakyReLU(alpha = 0.2)(x)
 
     x = Dense(1)(x)
     output = Activation('sigmoid')(x)

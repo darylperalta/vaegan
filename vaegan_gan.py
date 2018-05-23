@@ -76,21 +76,25 @@ def build_generator(latent_dim = 2048):
     latent_inputs = Input(shape=(latent_dim,), name='z_sampling')
     x = Dense(8*8*256)(latent_inputs)
     x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    #x = Activation('relu')(x)
+    x = LeakyReLU(alpha = 0.2)(x)
 
     x = Reshape((8, 8, 256))(x)
 
     x = Conv2DTranspose(256, (5,5), strides=(2,2), padding ='same')(x)
     x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    #x = Activation('relu')(x)
+    x = LeakyReLU(alpha = 0.2)(x)
 
     x = Conv2DTranspose(128,(5,5),strides=(2,2),padding ='same')(x)
     x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    #x = Activation('relu')(x)
+    x = LeakyReLU(alpha = 0.2)(x)
 
     x = Conv2DTranspose(32,(5,5),strides=(2,2),padding ='same')(x)
     x = BatchNormalization()(x)
-    x = Activation('relu')(x)
+    #x = Activation('relu')(x)
+    x = LeakyReLU(alpha = 0.2)(x)
 
     x = Conv2DTranspose(3,(5,5),strides=(1,1),padding ='same')(x)
     #outputs = Activation('tanh')(x)
@@ -290,7 +294,7 @@ def plot_images(generator, steps, num_images, model_name, latent_size):
         image = np.reshape(images[i], [image_size, image_size, 3])
         #cv2.imshow('out', image)
         #cv2.waitKey(0)
-        cv2.imwrite(out_dir+'/'+'out'+str(steps)+'_'+str(i)+'.jpg', (image*255).astype(np.uint8))
+        cv2.imwrite(out_dir+'/'+'out'+str(steps)+'_'+str(i)+'.jpg', ((image*127.5)+127.5).astype(np.uint8))
 
 def build_and_train_models(latent_size=2048):
     # MNIST dataset
@@ -301,7 +305,7 @@ def build_and_train_models(latent_size=2048):
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "dcgan_celeb_tanh_neg_1024_"
+    model_name = "dcgan_celeb_tanh_neg_1024_leaky"
     # Network parameters
     # The latent or z vector is 100-dim
     #latent_size = 2048
