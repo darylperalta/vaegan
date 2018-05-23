@@ -305,7 +305,7 @@ def build_and_train_models(latent_size=2048):
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "dcgan_celeb_tanh_neg_1024_leaky_128"
+    model_name = "dcgan_celeb_tanh_neg_leaky_128_nodecay"
     # Network parameters
     # The latent or z vector is 100-dim
     #latent_size = 2048
@@ -314,8 +314,9 @@ def build_and_train_models(latent_size=2048):
     num_images = 202599
     epochs = 10
     train_steps = num_images*10
-    lr = 0.0003*0.5
-    decay = 6e-8*0.5
+    #lr = 0.0003*0.5
+    #decay = 6e-8*0.5
+    lr = 0.0003
     input_shape = (image_size, image_size, 3)
 
     # Build discriminator model
@@ -323,7 +324,8 @@ def build_and_train_models(latent_size=2048):
     #discriminator = build_discriminator(inputs)
     discriminator = vae_discriminator_model()
     # [1] uses Adam, but discriminator converges easily with RMSprop
-    optimizer = RMSprop(lr=lr*0.5, decay=decay)
+    #optimizer = RMSprop(lr=lr, decay=decay)
+    optimizer = RMSprop(lr=lr)
     discriminator.compile(loss='binary_crossentropy',
                           optimizer=optimizer,
                           metrics=['accuracy'])
@@ -341,7 +343,8 @@ def build_and_train_models(latent_size=2048):
     generator.summary()
 
     # Build adversarial model = generator + discriminator
-    optimizer = RMSprop(lr=lr*0.5, decay=decay)
+    #optimizer = RMSprop(lr=lr, decay=decay)
+    optimizer = RMSprop(lr=lr)
     discriminator.trainable = False
     adversarial = Model(inputs,
                         discriminator(generator(inputs)),
