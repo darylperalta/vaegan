@@ -567,7 +567,94 @@ def vaegan_actual_predict(weights_path = 'vae_mlp_mnist.h5', datapath = '/home/d
         cv2.waitKey(0)
 
 
+def vaegan_complete_model():
+        '''VAEGAN complete model.'''
+        # VAE model = encoder + decoder
+        # build encoder model
+        input_shape = original_dim
+        inputs = Input(shape=input_shape, name='encoder_input')
+        x = Conv2D(64,(5,5), strides =(2,2),padding='same')(inputs)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
 
+        x = Conv2D(128,(5,5), strides =(2,2),padding='same')(x)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+
+        x = Conv2D(256,(5,5), strides =(2,2),padding='same')(x)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+
+        x = Flatten()(x)
+        x = Dense(2048)(x)
+        x = BatchNormalization()(x)
+        x = Activation('relu', name='z_mean')(x)
+
+        z_mean = Dense(latent_dim, name='x_mean')(x)
+
+        z_log_var = Dense(latent_dim, name='x_log_var')(x)
+
+        # use reparameterization trick to push the sampling out as input
+        # note that "output_shape" isn't necessary with the TensorFlow backend
+        z = Lambda(sampling, output_shape=(latent_dim,), name='z')([z_mean, z_log_var])
+        #encoder = Model(inputs, [z_mean, z_log_var, z], name='encoder')
+        encoder = Model(inputs, [z_mean, z_log_var, z], name='encoder')
+
+        encoder.summary()
+        plot_model(encoder, to_file='vaegan_encoder.png', show_shapes=True)
+
+        # build decoder model
+        latent_inputs = Input(shape=(latent_dim,), name='z_sampling')
+        x = Dense(8*8*256)(latent_inputs)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+
+        x = Reshape((8, 8, 256))(x)
+
+        x = Conv2DTranspose(256, (5,5), strides=(2,2), padding ='same')(x)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+
+        x = Conv2DTranspose(128,(5,5),strides=(2,2),padding ='same')(x)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+
+        x = Conv2DTranspose(32,(5,5),strides=(2,2),padding ='same')(x)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+
+        x = Conv2DTranspose(3,(5,5),strides=(1,1),padding ='same')(x)
+        outputs = Activation('tanh')(x)
+
+        # instantiate decoder model
+        decoder = Model(latent_inputs, outputs, name='decoder')
+        decoder.summary()
+        plot_model(decoder, to_file='vaegan_decoder.png', show_shapes=True)
+
+        # instantiate VAE model
+        outputs = decoder(encoder(inputs)[2])
+        vae = Model(inputs, outputs, name='vae_mlp')
+
+        #outputs = Dense(original_dim, activation='sigmoid')(x)
+        if mse_flag:
+            reconstruction_loss = mse(inputs,
+                                  outputs)
+        else:
+            reconstruction_loss = binary_crossentropy(inputs,
+                                                      outputs)
+        reconstruction_loss *= original_dim[0]*original_dim[1]*original_dim[2]
+        kl_loss = 1 + z_log_var - K.square(z_mean) - K.exp(z_log_var)
+        kl_loss = K.sum(kl_loss, axis=-1)
+        kl_loss *= -0.5
+        vae_loss = K.mean(reconstruction_loss + kl_loss)
+        vae.add_loss(vae_loss)
+        vae.compile(optimizer=RMSprop(lr=0.0003))
+        vae.summary()
+        plot_model(vae,
+                   to_file='vae.png',
+                   show_shapes=True)
+
+        return encoder, decoder, vae
 
 def main():
     #some_gen = dataloader()
