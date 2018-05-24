@@ -344,7 +344,7 @@ def vaegan_actual_train(batch_size = 64, epochs=10, final_chk = 'vae.h5',mse_fla
     models = (encoder, decoder)
     #data = (x_test, y_test)
 
-    chkpath="/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-negative-{epoch:02d}.hdf5"
+    chkpath="/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-negative-May24-{epoch:02d}.hdf5"
     checkpoint = ModelCheckpoint(chkpath, verbose=1)
 
     vae.fit_generator(dataloader(negative=True),
@@ -660,10 +660,10 @@ def main():
     #some_gen = dataloader()
     #a,b = next(some_gen)
     #print('a', type(a))
-    #vaegan_actual_train(epochs=10,final_chk='vae_actual_negative.h5', mse_flag=True)
+    vaegan_actual_train(epochs=20,final_chk='vae_actual_negative_May24.h5', mse_flag=True)
     #'/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-03.hdf5'
     #vaegan_train(epochs=10,final_chk='vae.h5', mse_flag=True)
-    vaegan_actual_predict(weights_path = '/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-negative-10.hdf5',latent_dim= 128,save_out=True)
+    #vaegan_actual_predict(weights_path = '/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-negative-10.hdf5',latent_dim= 128,save_out=True)
     #vaegan_predict(weights_path = 'checkpoints/chkpt-01.hdf 5',save_out=False)
 
     #encoder, decoder, vae = vaegan_model()
