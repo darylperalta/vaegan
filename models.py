@@ -16,6 +16,7 @@ import cv2
 import os
 import matplotlib.pyplot as plt
 import glob
+import math
 
 from dataloader import dataloader
 # reparameterization trick
@@ -592,12 +593,13 @@ def nll_loss(mean, x):
     #return K.sum(tmp)
     return K.mean(tmp)
     '''
-    ln_var =1
-    x_prec = np.exp(-ln_var)
+    ln_var =0
+    x_prec = math.exp(-ln_var)
     x_diff = x - mean
     x_power = (x_diff * x_diff) * x_prec * -0.5
-    loss = (ln_var + np.log(2 * np.pi)) / 2 - x_power
+    loss = (ln_var + math.log(2 * math.pi)) / 2 - x_power
     return K.sum(loss)
+    #return K.mean(loss)
 
 def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 128, epochs=50, mse_flag=True, lr = 0.0003):
         '''VAEGAN complete model.'''
@@ -624,14 +626,21 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
         x = LeakyReLU(alpha = 0.2,name = 'enc_LReLU3')(x)
 
         x = Flatten()(x)
-        x = Dense(2048, name = 'enc_dense1')(x)
-        x = BatchNormalization(name = 'enc_bn4')(x)
+        #x = Dense(2048, name = 'enc_dense1')(x)
+        #x = BatchNormalization(name = 'enc_bn4')(x)
         #x = Activation('relu', name='z_mean')(x)
-        x = LeakyReLU(alpha = 0.2, name = 'enc_dense2')(x)
+        #x = LeakyReLU(alpha = 0.2, name = 'enc_dense2')(x)
 
-        z_mean = Dense(latent_dim, name='z_mean')(x)
 
-        z_log_var = Dense(latent_dim, name='z_log_var')(x)
+
+        x_mean = Dense(latent_dim, name='x_mean')(x)
+        x_mean = BatchNormalization()(x_mean)
+        z_mean = LeakyReLU(alpha = 0.2, name = 'z_mean')(x_mean)
+
+
+        x_log_var = Dense(latent_dim, name='x_log_var')(x)
+        x_log_var = BatchNormalization()(x_log_var)
+        z_log_var = LeakyReLU(alpha = 0.2, name='z_log_var')(x_log_var)
 
         # use reparameterization trick to push the sampling out as input
         # note that "output_shape" isn't necessary with the TensorFlow backend
@@ -771,15 +780,16 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
 
         reconstruction_loss = nll_loss(disc_x,disc_xtilde)
         #reconstruction_loss *= original_dim[0]*original_dim[1]*original_dim[2]
-        recon_mse = mse(inputs,out_recon)
-        recon_mse *= original_dim[0]*original_dim[1]*original_dim[2]
+        #recon_mse = mse(inputs,out_recon)
+        #recon_mse *= original_dim[0]*original_dim[1]*original_dim[2]
 
         kl_loss = 1 + z_log_var - K.square(z_mean) - K.exp(z_log_var)
         kl_loss = K.sum(kl_loss, axis=-1)
         kl_loss *= -0.5
-        vae_loss = K.mean(reconstruction_loss + kl_loss+recon_mse)
+        #vae_loss = K.mean(reconstruction_loss + kl_loss+recon_mse)
+        vae_loss = K.mean(reconstruction_loss + kl_loss)
         model1_enc.add_loss(vae_loss)
-        model1_enc.compile(optimizer=RMSprop(lr=lr*0.1))
+        model1_enc.compile(optimizer=RMSprop(lr=lr))
         #model1_enc.compile(optimizer=RMSprop(lr=0.003*0.001))
 
         #model1_enc.summary()
@@ -806,13 +816,14 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
         #vae_loss = K.mean(reconstruction_loss + kl_loss)
 
         #gan_real_loss = binary_crossentropy(K.ones_like(discriminator_2(disc_x)),discriminator_2(disc_x))
-        #gan_fake_loss1 = binary_crossentropy(K.ones_like(discriminator_2(disc_xtilde)),discriminator_2(disc_xtilde))
-        #gan_fake_loss2 = binary_crossentropy(K.ones_like(out_zp),out_zp)
-        gan_fake_loss1 = binary_crossentropy(K.zeros_like(discriminator_2(disc_xtilde)),discriminator_2(disc_xtilde))
-        gan_fake_loss2 = binary_crossentropy(K.zeros_like(out_zp),out_zp)
+        gan_fake_loss1 = binary_crossentropy(K.ones_like(discriminator_2(disc_xtilde)),discriminator_2(disc_xtilde))
+        gan_fake_loss2 = binary_crossentropy(K.ones_like(out_zp),out_zp)
+        #gan_fake_loss1 = binary_crossentropy(K.zeros_like(discriminator_2(disc_xtilde)),discriminator_2(disc_xtilde))
+        #gan_fake_loss2 = binary_crossentropy(K.zeros_like(out_zp),out_zp)
         gan_fake_loss=K.mean(gan_fake_loss1+gan_fake_loss2)
         #dec_loss = K.mean(gamma*reconstruction_loss - gan_fake_loss)
-        dec_loss = gamma*reconstruction_loss - gan_fake_loss
+        #dec_loss = gamma*reconstruction_loss - gan_fake_loss
+        dec_loss = gamma*reconstruction_loss + gan_fake_loss
 
         model2_dec.add_loss(dec_loss)
         model2_dec.compile(optimizer=RMSprop(lr=lr))
@@ -831,22 +842,22 @@ def vaegan_complete_train(batch_size = 64, epochs=10, final_chk = 'vae_complete.
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "vaegan_complete"
+    model_name = "vaegan_complete_lessdense_sumnll"
     # Network parameters
     # The latent or z vector is 100-dim
     #latent_size = 2048
     batch_size = 64
     #train_steps = 40000
     num_images = 202599
-    epochs = 10
-    train_steps = int((num_images//64)*11)
+    epochs = 11
+    train_steps = int((num_images//64)*epochs)
     #lr = 0.0003*0.5
     #decay = 6e-8*0.5
     lr = 0.0003
     input_shape = (image_size, image_size, 3)
 
 
-    encoder, decoder, discriminator, model1_enc, model2_dec = vaegan_complete_model()
+    encoder, decoder, discriminator, model1_enc, model2_dec = vaegan_complete_model( latent_dim = latent_size)
 
     print('Training started.')
     generate_batch = dataloader(batch_size =64, normalized = True, negative=True)
@@ -855,8 +866,8 @@ def vaegan_complete_train(batch_size = 64, epochs=10, final_chk = 'vae_complete.
     #batch_size, latent_size, train_steps, model_name = params
     num_images = 202599
     num_batches = num_images//batch_size
-    save_interval = 633
-    #save_interval = 5
+    #save_interval = 633
+    save_interval = 211
     #noise_input = np.random.uniform(-1.0, 1.0, size=[16, latent_size])
     for i in range(train_steps):
         # Random real images
@@ -881,12 +892,12 @@ def vaegan_complete_train(batch_size = 64, epochs=10, final_chk = 'vae_complete.
         metrics =discriminator.train_on_batch(x_tilde,y_fake)
         log = "%s [discriminator (z) loss:%f]" % (log, metrics[0])
         #y = np.zeros([batch_size, 1])
-        zp = np.random.normal(size=(batch_size, latent_size))
+        zp = np.random.normal(0,1,size=(batch_size, latent_size))
         metrics =discriminator.train_on_batch(decoder.predict(zp),y_fake)
         log = "%s [discriminator (zp) loss:%f]" % (log, metrics[0])
 
         real_images, _ = next(generate_batch)
-        zp = np.random.normal(size=(batch_size, latent_size))
+        zp = np.random.normal(0,1,size=(batch_size, latent_size))
         #metrics = model2_dec.train_on_batch([real_images,zp],[y_real,y_fake,y_fake])
         #metrics = model2_dec.train_on_batch([real_images,zp],[None,None,None])
         metrics = model2_dec.train_on_batch([real_images,zp],None)
@@ -945,9 +956,9 @@ def vaegan_complete_train(batch_size = 64, epochs=10, final_chk = 'vae_complete.
             discriminator.save_weights('checkpoints/model2_dec_'+filename)
 
             plot_images(decoder, i+1, 5, model_name,latent_size)
-    encoder.save(model_name +'encoder'+ ".h5")
-    decoder.save(model_name +'decoder'+ ".h5")
-    discriminator.save(model_name +'discriminator'+ ".h5")
+    encoder.save(model_name +'_encoder'+ ".h5")
+    decoder.save(model_name +'_decoder'+ ".h5")
+    discriminator.save(model_name +'_discriminator'+ ".h5")
 def main():
     #some_gen = dataloader()
     #a,b = next(some_gen)
@@ -961,7 +972,7 @@ def main():
     #encoder, decoder, vae = vaegan_model()
     #vae_discriminator_model()
     #vaegan_complete_model()
-    vaegan_complete_train()
+    vaegan_complete_train(latent_size=128)
 
 if __name__ == '__main__':
     main()
