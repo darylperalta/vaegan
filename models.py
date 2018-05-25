@@ -98,21 +98,6 @@ def plot_results(models,
     plt.savefig(filename)
     plt.show()
 
-def plot_images(generator, steps, num_images, model_name, latent_size):
-    out_dir = model_name+'_output_img'
-    os.makedirs(out_dir, exist_ok=True)
-
-    noise_input = np.random.uniform(-1.0, 1.0, size=[num_images, latent_size])
-    images = generator.predict(noise_input)
-
-    #num_images = images.shape[0]
-    image_size = images.shape[1]
-    for i in range(num_images):
-        image = np.reshape(images[i], [image_size, image_size, 3])
-        #cv2.imshow('out', image)
-        #cv2.waitKey(0)
-        cv2.imwrite(out_dir+'/'+'out'+str(steps)+'_'+str(i)+'.jpg', ((image*127.5)+127.5).astype(np.uint8))
-
 def vae_model(original_dim=32*32,input_shape = (32*32,), intermediate_dim = 512, batch_size =128, latent_dim = 2, epochs=50):
     '''VAE model.'''
     # VAE model = encoder + decoder
@@ -598,8 +583,8 @@ def nll_loss(mean, x):
     x_diff = x - mean
     x_power = (x_diff * x_diff) * x_prec * -0.5
     loss = (ln_var + math.log(2 * math.pi)) / 2 - x_power
-    #return K.sum(loss)
-    return K.mean(loss)
+    return K.sum(loss)
+    #return K.mean(loss)
 
 def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 128, epochs=50, mse_flag=True, lr = 0.0003):
         '''VAEGAN complete model.'''
@@ -760,7 +745,7 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
         decoder.trainable = False
         discriminator_l.trainable = False
         discriminator_2.trainable = False
-        print('encoder_model_try')
+        print('model1_enc')
 
         disc_xtilde = discriminator_l(decoder(encoder(inputs)[2]))
         disc_x = discriminator_l(inputs)
@@ -822,8 +807,8 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
         #gan_fake_loss2 = binary_crossentropy(K.zeros_like(out_zp),out_zp)
         gan_fake_loss=K.mean(gan_fake_loss1+gan_fake_loss2)
         #dec_loss = K.mean(gamma*reconstruction_loss - gan_fake_loss)
-        #dec_loss = gamma*reconstruction_loss - gan_fake_loss
-        dec_loss = gamma*reconstruction_loss + gan_fake_loss
+        dec_loss = gamma*reconstruction_loss - gan_fake_loss
+        #dec_loss = gamma*reconstruction_loss + gan_fake_loss
 
         model2_dec.add_loss(dec_loss)
         model2_dec.compile(optimizer=RMSprop(lr=lr))
@@ -842,7 +827,7 @@ def vaegan_complete_train(batch_size = 64, epochs=10, final_chk = 'vae_complete.
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "vaegan_complete_lessdense_meannll_minusganloss"
+    model_name = "vaegan_complete_minus_ganloss_enc_lr_0_5_128_vaesave"
     # Network parameters
     # The latent or z vector is 100-dim
     #latent_size = 2048
@@ -866,8 +851,8 @@ def vaegan_complete_train(batch_size = 64, epochs=10, final_chk = 'vae_complete.
     #batch_size, latent_size, train_steps, model_name = params
     num_images = 202599
     num_batches = num_images//batch_size
-    #save_interval = 633
     save_interval = 211
+    #save_interval = 2
     #noise_input = np.random.uniform(-1.0, 1.0, size=[16, latent_size])
     for i in range(train_steps):
         # Random real images
@@ -903,34 +888,7 @@ def vaegan_complete_train(batch_size = 64, epochs=10, final_chk = 'vae_complete.
         metrics = model2_dec.train_on_batch([real_images,zp],None)
         #print(metrics)
         log = "%s [decoder loss:%f]" % (log, metrics)
-        #print('metrics',metrics)
-        #loss = metrics[0]
-        #acc = metrics[1]
-        #log = "%d: [discriminator (real) loss: %f, acc: %f]" % (i, loss, acc)
-        '''
-        noise = np.random.uniform(-1.0, 1.0, size=[batch_size, latent_size])
-        fake_images = generator.predict(noise)
-        #x = np.concatenate((real_images, fake_images))
-        # Label real and fake images
-        y = np.zeros([batch_size, 1])
-        #y[batch_size:, :] = 0
-        metrics = discriminator.train_on_batch(fake_images, y)
-        # Train the Discriminator network
-        #metrics = discriminator.train_on_batch(x, y)
-        loss = metrics[0]
-        acc = metrics[1]
-        log = "%s: [discriminator (fake) loss: %f, acc: %f]" % (log, loss, acc)
 
-        # Generate random noise
-        noise = np.random.uniform(-1.0, 1.0, size=[batch_size, latent_size])
-        # Label fake images as real
-        y = np.ones([batch_size, 1])
-        # Train the Adversarial network
-        metrics = adversarial.train_on_batch(noise, y)
-        loss = metrics[0]
-        acc = metrics[1]
-        log = "%s [adversarial loss: %f, acc: %f]" % (log, loss, acc)
-        '''
         print(log)
 
         if (i + 1) % save_interval == 0:
@@ -955,10 +913,101 @@ def vaegan_complete_train(batch_size = 64, epochs=10, final_chk = 'vae_complete.
             #model2_dec.save_weights('checkpoints/model2_dec_'+filename)
             discriminator.save_weights('checkpoints/model2_dec_'+filename)
 
-            plot_images(decoder, i+1, 5, model_name,latent_size)
+            plot_images(decoder,encoder, i+1, 5, model_name,latent_size,'/home/daryl/datasets/img_align_celeba')
     encoder.save(model_name +'_encoder'+ ".h5")
     decoder.save(model_name +'_decoder'+ ".h5")
     discriminator.save(model_name +'_discriminator'+ ".h5")
+
+def vaegan_complete_predict(path_encoder = 'checkpoints/encoder_chk-vaegan_complete_lessdense_meannll_minusganloss9073.hdf5', path_decoder='checkpoints/decoder_chk-vaegan_complete_lessdense_meannll_minusganloss9073.hdf5', datapath = '/home/daryl/datasets/img_align_celeba',latent_dim = 128, save_out=False):
+    #encoder, decoder, vae = vaegan_actual_model()
+    encoder, decoder, discriminator, model1_enc, model2_dec = vaegan_complete_model( latent_dim = latent_dim)
+
+    batch = 10
+    out_dir = 'vaegan_vae_out_actual_128'
+    generator = decoder
+    generator.load_weights(path_decoder)
+    encoder.load_weights(path_encoder)
+
+    '''Generator prediction.'''
+
+    #z = np.random.normal(size=(batch,latent_dim))
+    z = np.random.uniform(-1.0, 1.0, size=[batch, latent_dim])
+    print('z shape', z.shape)
+    out = decoder.predict(z)
+    print('min', np.min(out))
+    os.makedirs(out_dir, exist_ok = True)
+    for i in range(batch):
+
+        print('predict', out.shape)
+        cv2.imshow('asdfa', (out[i]*127.5+127.5).astype(np.uint8) )
+        cv2.waitKey(0)
+        if save_out == True:
+            cv2.imwrite(out_dir+'/'+'out'+str(i)+'.jpg', (out[i]*127.5+127.5).astype(np.uint8))
+
+    '''Autoencoder prediction.'''
+    image_size =64
+    image_list = glob.glob(os.path.join(datapath,'*.jpg'))
+
+    np.random.shuffle(image_list)
+    batch_image_list = image_list[:batch]
+    batch_images = np.zeros((len(batch_image_list),image_size,image_size,3),dtype=np.float32)
+    for i in range(len(batch_image_list)):
+        img_temp = cv2.imread(batch_image_list[i])
+        #cv2.imshow('temp',img_temp)
+        #cv2.waitKey(0)
+        batch_images[i,:,:,:] = cv2.resize(img_temp, (image_size,image_size))
+
+    batch_images = (batch_images-127.5)/127.5
+    out_vae = decoder.predict(encoder.predict(batch_images)[2])
+    print('max', np.max(out_vae))
+    print('min', np.min (out_vae))
+    for i in range(batch):
+        cv2.imshow('Input', (batch_images[i,:,:,:]*127.5+127.5).astype(np.uint8))
+        cv2.waitKey(0)
+        cv2.imshow('Output', (out_vae[i,:,:,:]*127.5+127.5).astype(np.uint8))
+        cv2.waitKey(0)
+
+def plot_images(generator, encoder, steps, num_images, model_name, latent_size, datapath = '/home/daryl/datasets/img_align_celeba'):
+    decoder = generator
+    out_dir = model_name+'_output_img'
+    os.makedirs(out_dir, exist_ok=True)
+
+    noise_input = np.random.uniform(-1.0, 1.0, size=[num_images, latent_size])
+    images = generator.predict(noise_input)
+
+    #num_images = images.shape[0]
+    image_size = images.shape[1]
+    for i in range(num_images):
+        image = np.reshape(images[i], [image_size, image_size, 3])
+        #cv2.imshow('out', image)
+        #cv2.waitKey(0)
+        cv2.imwrite(out_dir+'/'+'out'+str(steps)+'_'+str(i)+'.jpg', ((image*127.5)+127.5).astype(np.uint8))
+
+    '''Autoencoder prediction.'''
+    image_size =64
+    image_list = glob.glob(os.path.join(datapath,'*.jpg'))
+
+    np.random.shuffle(image_list)
+    batch_image_list = image_list[:num_images]
+    batch_images = np.zeros((len(batch_image_list),image_size,image_size,3),dtype=np.float32)
+    for i in range(len(batch_image_list)):
+        img_temp = cv2.imread(batch_image_list[i])
+        #cv2.imshow('temp',img_temp)
+        #cv2.waitKey(0)
+        batch_images[i,:,:,:] = cv2.resize(img_temp, (image_size,image_size))
+
+    batch_images = (batch_images-127.5)/127.5
+    out_vae = decoder.predict(encoder.predict(batch_images)[2])
+    #print('max', np.max(out_vae))
+    #print('min', np.min (out_vae))
+    for i in range(num_images):
+        #cv2.imshow('Input', (batch_images[i,:,:,:]*127.5+127.5).astype(np.uint8))
+        #cv2.waitKey(0)
+        #cv2.imshow('Output', (out_vae[i,:,:,:]*127.5+127.5).astype(np.uint8))
+        #cv2.waitKey(0)
+        cv2.imwrite(out_dir+'/'+'in_autoencoder_'+str(steps)+'_'+str(i)+'.jpg', ((batch_images[i].reshape((image_size, image_size,3))*127.5)+127.5).astype(np.uint8))
+        cv2.imwrite(out_dir+'/'+'out_autoencoder_'+str(steps)+'_'+str(i)+'.jpg', ((out_vae[i].reshape((image_size, image_size,3))*127.5)+127.5).astype(np.uint8))
+
 def main():
     #some_gen = dataloader()
     #a,b = next(some_gen)
@@ -973,6 +1022,6 @@ def main():
     #vae_discriminator_model()
     #vaegan_complete_model()
     vaegan_complete_train(latent_size=128)
-
+    #vaegan_complete_predict()
 if __name__ == '__main__':
     main()
