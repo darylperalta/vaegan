@@ -598,8 +598,8 @@ def nll_loss(mean, x):
     x_diff = x - mean
     x_power = (x_diff * x_diff) * x_prec * -0.5
     loss = (ln_var + math.log(2 * math.pi)) / 2 - x_power
-    return K.sum(loss)
-    #return K.mean(loss)
+    #return K.sum(loss)
+    return K.mean(loss)
 
 def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 128, epochs=50, mse_flag=True, lr = 0.0003):
         '''VAEGAN complete model.'''
@@ -789,7 +789,7 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
         #vae_loss = K.mean(reconstruction_loss + kl_loss+recon_mse)
         vae_loss = K.mean(reconstruction_loss + kl_loss)
         model1_enc.add_loss(vae_loss)
-        model1_enc.compile(optimizer=RMSprop(lr=lr))
+        model1_enc.compile(optimizer=RMSprop(lr=lr*(0.5)))
         #model1_enc.compile(optimizer=RMSprop(lr=0.003*0.001))
 
         #model1_enc.summary()
@@ -842,7 +842,7 @@ def vaegan_complete_train(batch_size = 64, epochs=10, final_chk = 'vae_complete.
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "vaegan_complete_lessdense_sumnll"
+    model_name = "vaegan_complete_lessdense_meannll_minusganloss"
     # Network parameters
     # The latent or z vector is 100-dim
     #latent_size = 2048
@@ -884,17 +884,17 @@ def vaegan_complete_train(batch_size = 64, epochs=10, final_chk = 'vae_complete.
 
         y_real = np.ones([batch_size, 1])
         metrics = discriminator.train_on_batch(real_images,y_real)
-        log = "%s: [discriminator (real) loss:%f]" % (log, metrics[0])
+        log = "%s: [discriminator (real) loss:%f acc:%f]" % (log, metrics[0],metrics[1])
 
         y_fake = np.zeros([batch_size, 1])
         x_tilde = decoder.predict(encoder.predict(real_images)[2])
 
         metrics =discriminator.train_on_batch(x_tilde,y_fake)
-        log = "%s [discriminator (z) loss:%f]" % (log, metrics[0])
+        log = "%s [discriminator (z) loss:%f acc:%f]" % (log, metrics[0],metrics[1])
         #y = np.zeros([batch_size, 1])
         zp = np.random.normal(0,1,size=(batch_size, latent_size))
         metrics =discriminator.train_on_batch(decoder.predict(zp),y_fake)
-        log = "%s [discriminator (zp) loss:%f]" % (log, metrics[0])
+        log = "%s [discriminator (zp) loss:%f acc:%f]" % (log, metrics[0], metrics[1])
 
         real_images, _ = next(generate_batch)
         zp = np.random.normal(0,1,size=(batch_size, latent_size))
