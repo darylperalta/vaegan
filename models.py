@@ -774,7 +774,7 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
         #vae_loss = K.mean(reconstruction_loss + kl_loss+recon_mse)
         vae_loss = K.mean(reconstruction_loss + kl_loss)
         model1_enc.add_loss(vae_loss)
-        model1_enc.compile(optimizer=RMSprop(lr=lr*(0.5)))
+        model1_enc.compile(optimizer=RMSprop(lr=lr*0.05))
         #model1_enc.compile(optimizer=RMSprop(lr=0.003*0.001))
 
         #model1_enc.summary()
@@ -822,19 +822,19 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
 
         return encoder, decoder, discriminator, model1_enc, model2_dec
 
-def vaegan_complete_train(batch_size = 64, epochs=10, final_chk = 'vae_complete.h5',mse_flag=True,latent_size = 128):
+def vaegan_complete_train(batch_size = 64, final_chk = 'vae_complete.h5',mse_flag=True,latent_size = 128, epochs=11):
     image_size = 64
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "vaegan_complete_minus_ganloss_enc_lr_0_5_128_vaesave"
+    model_name = "vaegan_complete_minus_ganloss_enc_lr_0_05_128_vaesave"
     # Network parameters
     # The latent or z vector is 100-dim
     #latent_size = 2048
     batch_size = 64
     #train_steps = 40000
     num_images = 202599
-    epochs = 11
+    #epochs = 11
     train_steps = int((num_images//64)*epochs)
     #lr = 0.0003*0.5
     #decay = 6e-8*0.5
@@ -914,6 +914,7 @@ def vaegan_complete_train(batch_size = 64, epochs=10, final_chk = 'vae_complete.
             discriminator.save_weights('checkpoints/model2_dec_'+filename)
 
             plot_images(decoder,encoder, i+1, 5, model_name,latent_size,'/home/daryl/datasets/img_align_celeba')
+
     encoder.save(model_name +'_encoder'+ ".h5")
     decoder.save(model_name +'_decoder'+ ".h5")
     discriminator.save(model_name +'_discriminator'+ ".h5")
@@ -921,9 +922,12 @@ def vaegan_complete_train(batch_size = 64, epochs=10, final_chk = 'vae_complete.
 def vaegan_complete_predict(path_encoder = 'checkpoints/encoder_chk-vaegan_complete_lessdense_meannll_minusganloss9073.hdf5', path_decoder='checkpoints/decoder_chk-vaegan_complete_lessdense_meannll_minusganloss9073.hdf5', datapath = '/home/daryl/datasets/img_align_celeba',latent_dim = 128, save_out=False):
     #encoder, decoder, vae = vaegan_actual_model()
     encoder, decoder, discriminator, model1_enc, model2_dec = vaegan_complete_model( latent_dim = latent_dim)
+    image_size =64
+    batch = 25
+    rows = 5
+    columns = 5
 
-    batch = 10
-    out_dir = 'vaegan_vae_out_actual_128'
+    out_dir = 'imgs'
     generator = decoder
     generator.load_weights(path_decoder)
     encoder.load_weights(path_encoder)
@@ -935,17 +939,25 @@ def vaegan_complete_predict(path_encoder = 'checkpoints/encoder_chk-vaegan_compl
     print('z shape', z.shape)
     out = decoder.predict(z)
     print('min', np.min(out))
-    os.makedirs(out_dir, exist_ok = True)
-    for i in range(batch):
 
-        print('predict', out.shape)
-        cv2.imshow('asdfa', (out[i]*127.5+127.5).astype(np.uint8) )
-        cv2.waitKey(0)
-        if save_out == True:
-            cv2.imwrite(out_dir+'/'+'out'+str(i)+'.jpg', (out[i]*127.5+127.5).astype(np.uint8))
+    image_holder = np.zeros((image_size*5,image_size*5,3), dtype = np.uint8)
+
+    os.makedirs(out_dir, exist_ok = True)
+
+    for r in range(rows):
+        for c in range(columns):
+            print('shape ', image_holder[r:((r+1)*image_size),c:((c+1)*image_size),:].shape)
+            image_holder[r*image_size:((r+1)*image_size),c*image_size:((c+1)*image_size),:] = (out[(r*5) + (c+1) - 1]*127.5+127.5).astype(np.uint8)
+
+        #print('predict', out.shape)
+        #cv2.imshow('asdfa', (out[i]*127.5+127.5).astype(np.uint8))
+    cv2.imshow('out',image_holder)
+    cv2.waitKey(0)
+    if save_out == True:
+        cv2.imwrite(out_dir+'/'+'generator_out.jpg', (image_holder).astype(np.uint8))
 
     '''Autoencoder prediction.'''
-    image_size =64
+
     image_list = glob.glob(os.path.join(datapath,'*.jpg'))
 
     np.random.shuffle(image_list)
@@ -958,14 +970,29 @@ def vaegan_complete_predict(path_encoder = 'checkpoints/encoder_chk-vaegan_compl
         batch_images[i,:,:,:] = cv2.resize(img_temp, (image_size,image_size))
 
     batch_images = (batch_images-127.5)/127.5
+    z = encoder.predict(batch_images)[2]
+    print('z: ', z.shape, np.max(z), np.min(z))
     out_vae = decoder.predict(encoder.predict(batch_images)[2])
-    print('max', np.max(out_vae))
-    print('min', np.min (out_vae))
-    for i in range(batch):
-        cv2.imshow('Input', (batch_images[i,:,:,:]*127.5+127.5).astype(np.uint8))
-        cv2.waitKey(0)
-        cv2.imshow('Output', (out_vae[i,:,:,:]*127.5+127.5).astype(np.uint8))
-        cv2.waitKey(0)
+    input_image_holder = np.zeros((image_size*5,image_size*5,3), dtype = np.uint8)
+    recon_image_holder = np.zeros((image_size*5,image_size*5,3), dtype = np.uint8)
+    #print('max', np.max(out_vae))
+    #print('min', np.min (out_vae))
+    for r in range(rows):
+        for c in range(columns):
+            #print('shape ', image_holder[r:((r+1)*image_size),c:((c+1)*image_size),:].shape)
+            input_image_holder[r*image_size:((r+1)*image_size),c*image_size:((c+1)*image_size),:] = (batch_images[(r*5) + (c+1) - 1]*127.5+127.5).astype(np.uint8)
+            recon_image_holder[r*image_size:((r+1)*image_size),c*image_size:((c+1)*image_size),:] = (out_vae[(r*5) + (c+1) - 1]*127.5+127.5).astype(np.uint8)
+
+    cv2.imshow('Input', (input_image_holder).astype(np.uint8))
+    cv2.waitKey(0)
+    cv2.imshow('Output', (recon_image_holder).astype(np.uint8))
+    cv2.waitKey(0)
+
+    if save_out == True:
+        cv2.imwrite(out_dir+'/'+'autoencoder_input.jpg', (input_image_holder).astype(np.uint8))
+        cv2.imwrite(out_dir+'/'+'autoencoder_output.jpg', (recon_image_holder).astype(np.uint8))
+
+
 
 def plot_images(generator, encoder, steps, num_images, model_name, latent_size, datapath = '/home/daryl/datasets/img_align_celeba'):
     decoder = generator
@@ -1021,7 +1048,9 @@ def main():
     #encoder, decoder, vae = vaegan_model()
     #vae_discriminator_model()
     #vaegan_complete_model()
-    vaegan_complete_train(latent_size=128)
+    vaegan_complete_train(latent_size=128,epochs=6)
     #vaegan_complete_predict()
+    #vaegan_complete_predict(path_encoder = 'checkpoints/encoder_chk-vaegan_complete_lessdense_meannll_minusganloss9073.hdf5', path_decoder='checkpoints/decoder_chk-vaegan_complete_lessdense_meannll_minusganloss9073.hdf5', datapath = '/home/daryl/datasets/img_align_celeba',latent_dim = 128, save_out=True)
+
 if __name__ == '__main__':
     main()
