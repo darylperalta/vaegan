@@ -362,15 +362,24 @@ def build_and_train_models(latent_size=2048):
 
 
 def test_generator(generator, lantent_size):
-    noise_input = np.random.uniform(-1.0, 1.0, size=[16, lantent_size])
-    images = generator.predict(noise_input)
+    num_images = 25
+    noise_input = np.random.uniform(-1.0, 1.0, size=[num_images, lantent_size])
+    out = generator.predict(noise_input)
+    #image_size = 64
+    rows = 5
+    columns = 5
+    #num_images = images.shape[0]
+    image_size = out.shape[1]
 
-    num_images = images.shape[0]
-    image_size = images.shape[1]
-    for i in range(num_images):
-        image = np.reshape(images[i], [image_size, image_size, 3])
-        cv2.imshow('out', (image*127.5+127.5).astype(np.uint8))
-        cv2.waitKey(0)
+    image_holder =np.zeros((image_size*5,image_size*5,3), dtype = np.uint8)
+
+    for r in range(rows):
+        for c in range(columns):
+            print('shape ', image_holder[r:((r+1)*image_size),c:((c+1)*image_size),:].shape)
+            image_holder[r*image_size:((r+1)*image_size),c*image_size:((c+1)*image_size),:] = (out[(r*5) + (c+1) - 1]*127.5+127.5).astype(np.uint8)
+    cv2.imshow('generator_out', image_holder)
+    cv2.waitKey(0)
+    cv2.imwrite('imgs/GAN_51273.jpg', image_holder)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

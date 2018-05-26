@@ -14,7 +14,16 @@ Implementation of [Autoencoding beyond pixels using a learned similarity metric]
 
 - 202599 celebrity images
 
-## Image Generation from Noise Results
+## GAN results
+
+GAN generation from noise:
+
+![](imgs/GAN_51273.jpg)
+
+## VAE results
+
+
+## VAEGAN results
 
 
 VAEGAN generation from noise:
