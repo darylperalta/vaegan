@@ -12,28 +12,23 @@ Implementation of [Autoencoding beyond pixels using a learned similarity metric]
 
 [CelebA dataset](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
 
-## Usage
-
-   Train:
-
-    $ python main.py --op 0 --path your data path
-
-  Test:
-
-    $ python main.py --op 1 --path your data path
+- 202599 celebrity images
 
 ## Image Generation from Noise Results
 
 
+VAEGAN generation from noise:
+![](img/generator_out.jpg)
 
-[//]: <> (![](img/real.png))
+VAEGAN autoencoder:
+![](img/autoencoder_input.jpg)
 
 
 
-[//]: <> (![](img/recon.png))
+![](img/autoencoder_output.jpg)
 
 
-##Problems Encountered
+## Problems Encountered
 
 - Hard to train.
 - Numerical instability in loss.
