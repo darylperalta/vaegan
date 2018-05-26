@@ -774,7 +774,7 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
         #vae_loss = K.mean(reconstruction_loss + kl_loss+recon_mse)
         vae_loss = K.mean(reconstruction_loss + kl_loss)
         model1_enc.add_loss(vae_loss)
-        model1_enc.compile(optimizer=RMSprop(lr=lr*0.05))
+        model1_enc.compile(optimizer=RMSprop(lr=lr*2))
         #model1_enc.compile(optimizer=RMSprop(lr=0.003*0.001))
 
         #model1_enc.summary()
@@ -827,7 +827,7 @@ def vaegan_complete_train(batch_size = 64, final_chk = 'vae_complete.h5',mse_fla
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "vaegan_complete_minus_ganloss_enc_lr_0_05_128_vaesave"
+    model_name = "vaegan_complete_minus_ganloss_enc_lr_2_128_vaesave"
     # Network parameters
     # The latent or z vector is 100-dim
     #latent_size = 2048
