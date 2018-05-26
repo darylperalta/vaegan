@@ -18,14 +18,14 @@ Implementation of [Autoencoding beyond pixels using a learned similarity metric]
 
 
 VAEGAN generation from noise:
-![](img/generator_out.jpg)
+![](imgs/generator_out.jpg)
 
 VAEGAN autoencoder:
-![](img/autoencoder_input.jpg)
+![](imgs/autoencoder_input.jpg)
 
 
 
-![](img/autoencoder_output.jpg)
+![](imgs/autoencoder_output.jpg)
 
 
 ## Problems Encountered
