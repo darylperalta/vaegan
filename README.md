@@ -52,15 +52,15 @@ VAEGAN decoder model:
 
 VAEGAN discriminator model:
 
-<img src="imgs/vaegan_discriminator.png" width="500">
+<img src="imgs/vaegan_discriminator.png" width="300">
 
 VAEGAN encoder model for training:
 
-<img src="imgs/model1_enc.png" width="500">
+<img src="imgs/model1_enc.png" width="400">
 
 VAEGAN decoder model for training:
 
-<img src="imgs/model1_dec.png" width="500">
+<img src="imgs/model2_dec.png" width="400">
 
 ## VAEGAN results
 
