@@ -993,6 +993,93 @@ def vaegan_complete_predict(path_encoder = 'checkpoints/encoder_chk-vaegan_compl
         cv2.imwrite(out_dir+'/'+'autoencoder_output.jpg', (recon_image_holder).astype(np.uint8))
 
 
+def vaegan_actual_predict_docu(weights_path = 'vae_mlp_mnist.h5', datapath = '/home/daryl/datasets/img_align_celeba',latent_dim = 2048, save_out=True):
+    encoder, decoder, vae = vaegan_actual_model()
+    batch = 25
+    out_dir = 'imgs'
+    image_size =64
+    rows = 5
+    columns = 5
+
+    vae.load_weights(weights_path)
+
+    '''Generator prediction.'''
+
+    #z = np.random.normal(size=(batch,latent_dim))
+    z = np.random.uniform(-1.0, 1.0, size=[batch, latent_dim])
+    #print('z shape', z.shape)
+    out = decoder.predict(z)
+    #print('min', np.min(out))
+    os.makedirs(out_dir, exist_ok = True)
+    image_holder = np.zeros((image_size*5,image_size*5,3), dtype = np.uint8)
+
+    for r in range(rows):
+        for c in range(columns):
+            #print('shape ', image_holder[r:((r+1)*image_size),c:((c+1)*image_size),:].shape)
+            image_holder[r*image_size:((r+1)*image_size),c*image_size:((c+1)*image_size),:] = (out[(r*5) + (c+1) - 1]*127.5+127.5).astype(np.uint8)
+
+    cv2.imshow('vae_generator_out',image_holder)
+    cv2.waitKey(0)
+    if save_out == True:
+        cv2.imwrite(out_dir+'/'+'vae_generator_out.jpg', (image_holder).astype(np.uint8))
+
+
+    '''Autoencoder prediction.'''
+    '''
+    image_list = glob.glob(os.path.join(datapath,'*.jpg'))
+
+    np.random.shuffle(image_list)
+    batch_image_list = image_list[:batch]
+    batch_images = np.zeros((len(batch_image_list),image_size,image_size,3),dtype=np.float32)
+    for i in range(len(batch_image_list)):
+        img_temp = cv2.imread(batch_image_list[i])
+        #cv2.imshow('temp',img_temp)
+        #cv2.waitKey(0)
+        batch_images[i,:,:,:] = cv2.resize(img_temp, (image_size,image_size))
+
+    batch_images = batch_images/255.0
+    out_vae = vae.predict(batch_images)
+
+    for i in range(batch):
+        cv2.imshow('Input', batch_images[i,:,:,:])
+        cv2.waitKey(0)
+        cv2.imshow('Output', out_vae[i,:,:,:])
+        cv2.waitKey(0)
+    '''
+    '''Autoencoder prediction.'''
+
+    image_list = glob.glob(os.path.join(datapath,'*.jpg'))
+
+    np.random.shuffle(image_list)
+    batch_image_list = image_list[:batch]
+    batch_images = np.zeros((len(batch_image_list),image_size,image_size,3),dtype=np.float32)
+    for i in range(len(batch_image_list)):
+        img_temp = cv2.imread(batch_image_list[i])
+        #cv2.imshow('temp',img_temp)
+        #cv2.waitKey(0)
+        batch_images[i,:,:,:] = cv2.resize(img_temp, (image_size,image_size))
+
+    batch_images = (batch_images-127.5)/127.5
+    out_vae = vae.predict(batch_images)
+    input_image_holder = np.zeros((image_size*5,image_size*5,3), dtype = np.uint8)
+    recon_image_holder = np.zeros((image_size*5,image_size*5,3), dtype = np.uint8)
+    #print('max', np.max(out_vae))
+    #print('min', np.min (out_vae))
+    for r in range(rows):
+        for c in range(columns):
+            #print('shape ', image_holder[r:((r+1)*image_size),c:((c+1)*image_size),:].shape)
+            input_image_holder[r*image_size:((r+1)*image_size),c*image_size:((c+1)*image_size),:] = (batch_images[(r*5) + (c+1) - 1]*127.5+127.5).astype(np.uint8)
+            recon_image_holder[r*image_size:((r+1)*image_size),c*image_size:((c+1)*image_size),:] = (out_vae[(r*5) + (c+1) - 1]*127.5+127.5).astype(np.uint8)
+
+    cv2.imshow('Input', (input_image_holder).astype(np.uint8))
+    cv2.waitKey(0)
+    cv2.imshow('Output', (recon_image_holder).astype(np.uint8))
+    cv2.waitKey(0)
+
+
+    if save_out == True:
+        cv2.imwrite(out_dir+'/'+'vae_autoencoder_input.jpg', (input_image_holder).astype(np.uint8))
+        cv2.imwrite(out_dir+'/'+'vae_autoencoder_output.jpg', (recon_image_holder).astype(np.uint8))
 
 def plot_images(generator, encoder, steps, num_images, model_name, latent_size, datapath = '/home/daryl/datasets/img_align_celeba'):
     decoder = generator
@@ -1043,12 +1130,15 @@ def main():
     #'/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-03.hdf5'
     #vaegan_train(epochs=10,final_chk='vae.h5', mse_flag=True)
     #vaegan_actual_predict(weights_path = '/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-negative-10.hdf5',latent_dim= 128,save_out=True)
+    #vaegan_actual_predict_docu(weights_path = '/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-negative-10.hdf5',latent_dim= 128,save_out=False)
+    vaegan_actual_predict_docu(weights_path = '/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-negative-May24-20.hdf5',latent_dim= 128,save_out=True)
+
     #vaegan_predict(weights_path = 'checkpoints/chkpt-01.hdf 5',save_out=False)
 
     #encoder, decoder, vae = vaegan_model()
     #vae_discriminator_model()
     #vaegan_complete_model()
-    vaegan_complete_train(latent_size=128,epochs=6)
+    #vaegan_complete_train(latent_size=128,epochs=6)
     #vaegan_complete_predict()
     #vaegan_complete_predict(path_encoder = 'checkpoints/encoder_chk-vaegan_complete_lessdense_meannll_minusganloss9073.hdf5', path_decoder='checkpoints/decoder_chk-vaegan_complete_lessdense_meannll_minusganloss9073.hdf5', datapath = '/home/daryl/datasets/img_align_celeba',latent_dim = 128, save_out=True)
 
