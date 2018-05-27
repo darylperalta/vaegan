@@ -849,7 +849,7 @@ def vaegan_complete_train(batch_size = 64, final_chk = 'vae_complete.h5',mse_fla
     if retrain == True:
         encoder.load_weights('checkpoints/encoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_retrain2_may27844.hdf5')
         decoder.load_weights('checkpoints/decoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_retrain2_may27844.hdf5')
-        discriminator.load_weights('checkpoints/model2_decoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_retrain2_may27844.hdf5')
+        discriminator.load_weights('checkpoints/model2_dec_chk-vaegan_complete_plus_ganloss_1benc_lr_05_retrain2_may27844.hdf5')
 
 
     print('Training started.')
