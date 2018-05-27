@@ -804,7 +804,7 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
 
         #gan_real_loss = binary_crossentropy(K.ones_like(discriminator_2(disc_x)),discriminator_2(disc_x))
         gan_fake_loss1 = binary_crossentropy(K.ones_like(discriminator_2(disc_xtilde)-0.1),discriminator_2(disc_xtilde))
-        gan_fake_loss2 = binary_crossentropy(K.ones_like(out_zp)-0,1,out_zp)
+        gan_fake_loss2 = binary_crossentropy(K.ones_like(out_zp)-0.1,out_zp)
         #gan_fake_loss1 = binary_crossentropy(K.zeros_like(discriminator_2(disc_xtilde)),discriminator_2(disc_xtilde))
         #gan_fake_loss2 = binary_crossentropy(K.zeros_like(out_zp),out_zp)
         gan_fake_loss=K.mean(gan_fake_loss1+gan_fake_loss2)
