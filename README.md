@@ -40,8 +40,29 @@ GAN generation from noise:
 
 ## VAEGAN model
 
-## VAEGAN results
+![](imgs/VAEGANpaperfigure.jpg)
 
+VAEGAN encoder model:
+
+![](imgs/vaegan_encoder_complete.png)
+
+VAEGAN decoder model:
+
+![](imgs/vaegan_decoder_complete.png)
+
+VAEGAN discriminator model:
+
+![](imgs/vaegan_discriminator.png)
+
+VAEGAN encoder model for training:
+
+![](imgs/model1_enc.png)
+
+VAEGAN decoder model for training:
+
+![](imgs/model1_dec.png)
+
+## VAEGAN results
 
 VAEGAN generation from noise:
 
