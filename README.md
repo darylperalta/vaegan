@@ -14,6 +14,8 @@ Implementation of [Autoencoding beyond pixels using a learned similarity metric]
 
 - 202599 celebrity images
 
+## VAE model
+
 ## VAE results
 
 VAE generation from noise:
@@ -28,11 +30,15 @@ VAE autoencoder reconstruction:
 
 ![](imgs/vae_autoencoder_output.jpg)
 
+## GAN model
+
 ## GAN results
 
 GAN generation from noise:
 
 ![](imgs/GAN_51273.jpg)
+
+## VAEGAN model
 
 ## VAEGAN results
 
@@ -49,6 +55,20 @@ VAEGAN autoencoder reconstruction:
 
 ![](imgs/autoencoder_output.jpg)
 
+
+## VAEGAN results with Checkerboard Artifacts
+
+VAEGAN generation from noise:
+
+![](imgs/generator_out_grid.jpg)
+
+VAEGAN autoencoder input:
+
+![](imgs/autoencoder_input_grid.jpg)
+
+VAEGAN autoencoder reconstruction:
+
+![](imgs/autoencoder_output_grid.jpg)
 
 ## Problems Encountered
 

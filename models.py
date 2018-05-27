@@ -954,7 +954,7 @@ def vaegan_complete_predict(path_encoder = 'checkpoints/encoder_chk-vaegan_compl
     cv2.imshow('out',image_holder)
     cv2.waitKey(0)
     if save_out == True:
-        cv2.imwrite(out_dir+'/'+'generator_out.jpg', (image_holder).astype(np.uint8))
+        cv2.imwrite(out_dir+'/'+'generator_out_grid.jpg', (image_holder).astype(np.uint8))
 
     '''Autoencoder prediction.'''
 
@@ -989,8 +989,8 @@ def vaegan_complete_predict(path_encoder = 'checkpoints/encoder_chk-vaegan_compl
     cv2.waitKey(0)
 
     if save_out == True:
-        cv2.imwrite(out_dir+'/'+'autoencoder_input.jpg', (input_image_holder).astype(np.uint8))
-        cv2.imwrite(out_dir+'/'+'autoencoder_output.jpg', (recon_image_holder).astype(np.uint8))
+        cv2.imwrite(out_dir+'/'+'autoencoder_input_grid.jpg', (input_image_holder).astype(np.uint8))
+        cv2.imwrite(out_dir+'/'+'autoencoder_output_grid.jpg', (recon_image_holder).astype(np.uint8))
 
 
 def vaegan_actual_predict_docu(weights_path = 'vae_mlp_mnist.h5', datapath = '/home/daryl/datasets/img_align_celeba',latent_dim = 2048, save_out=True):
@@ -1131,7 +1131,7 @@ def main():
     #vaegan_train(epochs=10,final_chk='vae.h5', mse_flag=True)
     #vaegan_actual_predict(weights_path = '/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-negative-10.hdf5',latent_dim= 128,save_out=True)
     #vaegan_actual_predict_docu(weights_path = '/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-negative-10.hdf5',latent_dim= 128,save_out=False)
-    vaegan_actual_predict_docu(weights_path = '/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-negative-May24-20.hdf5',latent_dim= 128,save_out=True)
+    #vaegan_actual_predict_docu(weights_path = '/home/daryl/EE298Z/vaegan/checkpoints/chkpt-actual-negative-May24-20.hdf5',latent_dim= 128,save_out=True)
 
     #vaegan_predict(weights_path = 'checkpoints/chkpt-01.hdf 5',save_out=False)
 
@@ -1141,6 +1141,7 @@ def main():
     #vaegan_complete_train(latent_size=128,epochs=6)
     #vaegan_complete_predict()
     #vaegan_complete_predict(path_encoder = 'checkpoints/encoder_chk-vaegan_complete_lessdense_meannll_minusganloss9073.hdf5', path_decoder='checkpoints/decoder_chk-vaegan_complete_lessdense_meannll_minusganloss9073.hdf5', datapath = '/home/daryl/datasets/img_align_celeba',latent_dim = 128, save_out=True)
+    vaegan_complete_predict(path_encoder = 'checkpoints/encoder_chk-vaegan_complete_lessdense_meannll_plusganloss_reducedlrencoder0_44642.hdf5', path_decoder='checkpoints/decoder_chk-vaegan_complete_lessdense_meannll_plusganloss_reducedlrencoder0_44642.hdf5', datapath = '/home/daryl/datasets/img_align_celeba',latent_dim = 128, save_out=True)
 
 if __name__ == '__main__':
     main()
