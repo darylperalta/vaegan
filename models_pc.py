@@ -803,8 +803,8 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
         #vae_loss = K.mean(reconstruction_loss + kl_loss)
 
         #gan_real_loss = binary_crossentropy(K.ones_like(discriminator_2(disc_x)),discriminator_2(disc_x))
-        gan_fake_loss1 = binary_crossentropy(K.ones_like(discriminator_2(disc_xtilde)),discriminator_2(disc_xtilde))
-        gan_fake_loss2 = binary_crossentropy(K.ones_like(out_zp),out_zp)
+        gan_fake_loss1 = binary_crossentropy(K.ones_like(discriminator_2(disc_xtilde)-0.1),discriminator_2(disc_xtilde))
+        gan_fake_loss2 = binary_crossentropy(K.ones_like(out_zp)-0,1,out_zp)
         #gan_fake_loss1 = binary_crossentropy(K.zeros_like(discriminator_2(disc_xtilde)),discriminator_2(disc_xtilde))
         #gan_fake_loss2 = binary_crossentropy(K.zeros_like(out_zp),out_zp)
         gan_fake_loss=K.mean(gan_fake_loss1+gan_fake_loss2)
@@ -829,7 +829,7 @@ def vaegan_complete_train(batch_size = 64, final_chk = 'vae_complete.h5',mse_fla
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "vaegan_complete_plus_ganloss_1benc_lr_05_may27"
+    model_name = "vaegan_complete_plus_ganloss_1benc_lr_05_soft_may27"
     # Network parameters
     # The latent or z vector is 100-dim
     #latent_size = 2048
