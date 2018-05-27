@@ -803,8 +803,8 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
         #vae_loss = K.mean(reconstruction_loss + kl_loss)
 
         #gan_real_loss = binary_crossentropy(K.ones_like(discriminator_2(disc_x)),discriminator_2(disc_x))
-        gan_fake_loss1 = binary_crossentropy(K.ones_like(discriminator_2(disc_xtilde)-0.1),discriminator_2(disc_xtilde))
-        gan_fake_loss2 = binary_crossentropy(K.ones_like(out_zp)-0.1,out_zp)
+        gan_fake_loss1 = binary_crossentropy(K.ones_like(discriminator_2(disc_xtilde)),discriminator_2(disc_xtilde))
+        gan_fake_loss2 = binary_crossentropy(K.ones_like(out_zp),out_zp)
         #gan_fake_loss1 = binary_crossentropy(K.zeros_like(discriminator_2(disc_xtilde)),discriminator_2(disc_xtilde))
         #gan_fake_loss2 = binary_crossentropy(K.zeros_like(out_zp),out_zp)
         gan_fake_loss=K.mean(gan_fake_loss1+gan_fake_loss2)
@@ -824,12 +824,12 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
 
         return encoder, decoder, discriminator, model1_enc, model2_dec
 
-def vaegan_complete_train(batch_size = 64, final_chk = 'vae_complete.h5',mse_flag=True,latent_size = 128, epochs=11):
+def vaegan_complete_train(batch_size = 64, final_chk = 'vae_complete.h5',mse_flag=True,latent_size = 128, epochs=11, retrain = False):
     image_size = 64
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "vaegan_complete_plus_ganloss_1benc_lr_05_soft_may27"
+    model_name = "vaegan_complete_plus_ganloss_1benc_lr_05_retrain_may27"
     # Network parameters
     # The latent or z vector is 100-dim
     #latent_size = 2048
@@ -845,6 +845,12 @@ def vaegan_complete_train(batch_size = 64, final_chk = 'vae_complete.h5',mse_fla
 
 
     encoder, decoder, discriminator, model1_enc, model2_dec = vaegan_complete_model( latent_dim = latent_size)
+
+    if retrain == True:
+        encoder.load_weights('checkpoints/encoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_may275908.hdf5')
+        decoder.load_weights('checkpoints/decoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_may275908.hdf5')
+        discriminator.load_weights('checkpoints/model2_dec_chk-vaegan_complete_plus_ganloss_1benc_lr_05_may275908.hdf5')
+
 
     print('Training started.')
     generate_batch = dataloader(batch_size =64, normalized = True, negative=True)
@@ -1177,7 +1183,7 @@ def main():
     #encoder, decoder, vae = vaegan_model()
     #vae_discriminator_model()
     #vaegan_complete_model()
-    vaegan_complete_train(latent_size=128,epochs=6)
+    vaegan_complete_train(latent_size=128,epochs=6,retrain = True)
     #vaegan_complete_predict()
     #vaegan_complete_predict(path_encoder = 'checkpoints/encoder_chk-vaegan_complete_lessdense_meannll_minusganloss9073.hdf5', path_decoder='checkpoints/decoder_chk-vaegan_complete_lessdense_meannll_minusganloss9073.hdf5', datapath = '/home/daryl/datasets/img_align_celeba',latent_dim = 128, save_out=True)
     #vaegan_complete_predict(path_encoder = 'checkpoints/encoder_chk-vaegan_complete_lessdense_meannll_plusganloss_reducedlrencoder0_44642.hdf5', path_decoder='checkpoints/decoder_chk-vaegan_complete_lessdense_meannll_plusganloss_reducedlrencoder0_44642.hdf5', datapath = '/home/daryl/datasets/img_align_celeba',latent_dim = 128, save_out=True)
