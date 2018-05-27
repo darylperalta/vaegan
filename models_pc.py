@@ -731,7 +731,7 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
         print('discriminator')
         #optimizer = RMSprop(lr=lr)
         discriminator.compile(loss='binary_crossentropy',
-                              optimizer=RMSprop(lr=lr),
+                              optimizer=RMSprop(lr=lr*0.8),
                               metrics=['accuracy'])
         print('discriminator')
         discriminator.summary()
@@ -776,7 +776,7 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
         #vae_loss = K.mean(reconstruction_loss + kl_loss+recon_mse)
         vae_loss = K.mean(reconstruction_loss + kl_loss)
         model1_enc.add_loss(vae_loss)
-        model1_enc.compile(optimizer=RMSprop(lr=lr*0.5))
+        model1_enc.compile(optimizer=RMSprop(lr=lr*0.4))
         #model1_enc.compile(optimizer=RMSprop(lr=0.003*0.001))
 
         #model1_enc.summary()
@@ -813,7 +813,7 @@ def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 1
         dec_loss = gamma*reconstruction_loss + gan_fake_loss
 
         model2_dec.add_loss(dec_loss)
-        model2_dec.compile(optimizer=RMSprop(lr=lr))
+        model2_dec.compile(optimizer=RMSprop(lr=lr*0.8))
 
         #optimizer = RMSprop(lr=lr)
         #discriminator.compile(loss='binary_crossentropy',
@@ -829,7 +829,7 @@ def vaegan_complete_train(batch_size = 64, final_chk = 'vae_complete.h5',mse_fla
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "vaegan_complete_plus_ganloss_1benc_lr_05_retrain_may27"
+    model_name = "vaegan_complete_plus_ganloss_1benc_lr_05_retrain2_may27"
     # Network parameters
     # The latent or z vector is 100-dim
     #latent_size = 2048
@@ -847,9 +847,9 @@ def vaegan_complete_train(batch_size = 64, final_chk = 'vae_complete.h5',mse_fla
     encoder, decoder, discriminator, model1_enc, model2_dec = vaegan_complete_model( latent_dim = latent_size)
 
     if retrain == True:
-        encoder.load_weights('checkpoints/encoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_may275908.hdf5')
-        decoder.load_weights('checkpoints/decoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_may275908.hdf5')
-        discriminator.load_weights('checkpoints/model2_dec_chk-vaegan_complete_plus_ganloss_1benc_lr_05_may275908.hdf5')
+        encoder.load_weights('checkpoints/encoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_retrain_may272743.hdf5')
+        decoder.load_weights('checkpoints/decoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_retrain_may272743.hdf5')
+        discriminator.load_weights('checkpoints/model2_dec_chk-vaegan_complete_plus_ganloss_1benc_lr_05_retrain_may272743.hdf5')
 
 
     print('Training started.')
