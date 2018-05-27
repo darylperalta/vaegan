@@ -583,8 +583,8 @@ def nll_loss(mean, x):
     x_diff = x - mean
     x_power = (x_diff * x_diff) * x_prec * -0.5
     loss = (ln_var + math.log(2 * math.pi)) / 2 - x_power
-    #return K.sum(loss)
-    return K.mean(loss)
+    return K.sum(loss)
+    #return K.mean(loss)
 
 def vaegan_complete_model(original_dim=(64,64,3), batch_size =64, latent_dim = 128, epochs=50, mse_flag=True, lr = 0.0003):
         '''VAEGAN complete model.'''
@@ -829,7 +829,7 @@ def vaegan_complete_train(batch_size = 64, final_chk = 'vae_complete.h5',mse_fla
     #x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
     #x_train = x_train.astype('float32') / 255
 
-    model_name = "vaegan_complete_plus_ganloss_1benc_lr_05_retrain2_may27"
+    model_name = "vaegan_complete_sumnll_plus_ganloss_1benc_lr_05_retrain3_may27"
     # Network parameters
     # The latent or z vector is 100-dim
     #latent_size = 2048
@@ -847,9 +847,9 @@ def vaegan_complete_train(batch_size = 64, final_chk = 'vae_complete.h5',mse_fla
     encoder, decoder, discriminator, model1_enc, model2_dec = vaegan_complete_model( latent_dim = latent_size)
 
     if retrain == True:
-        encoder.load_weights('checkpoints/encoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_retrain_may272743.hdf5')
-        decoder.load_weights('checkpoints/decoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_retrain_may272743.hdf5')
-        discriminator.load_weights('checkpoints/model2_dec_chk-vaegan_complete_plus_ganloss_1benc_lr_05_retrain_may272743.hdf5')
+        encoder.load_weights('checkpoints/encoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_retrain2_may27844.hdf5')
+        decoder.load_weights('checkpoints/decoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_retrain2_may27844.hdf5')
+        discriminator.load_weights('checkpoints/model2_decoder_chk-vaegan_complete_plus_ganloss_1benc_lr_05_retrain2_may27844.hdf5')
 
 
     print('Training started.')
