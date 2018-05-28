@@ -14,29 +14,6 @@ Implementation of [Autoencoding beyond pixels using a learned similarity metric]
 
 - 202599 celebrity images
 
-## VAE model
-
-## VAE results
-
-VAE generation from noise:
-
-![](imgs/vae_generator_out.jpg)
-
-VAE autoencoder input:
-
-![](imgs/vae_autoencoder_input.jpg)
-
-VAE autoencoder reconstruction:
-
-![](imgs/vae_autoencoder_output.jpg)
-
-## GAN model
-
-## GAN results
-
-GAN generation from noise:
-
-![](imgs/GAN_51273.jpg)
 
 ## VAEGAN model
 
@@ -62,6 +39,27 @@ VAEGAN decoder model for training:
 
 <img src="imgs/model2_dec.png" width="400">
 
+
+## VAE results
+
+VAE generation from noise:
+
+![](imgs/vae_generator_out.jpg)
+
+VAE autoencoder input:
+
+![](imgs/vae_autoencoder_input.jpg)
+
+VAE autoencoder reconstruction:
+
+![](imgs/vae_autoencoder_output.jpg)
+
+## GAN results
+
+GAN generation from noise:
+
+![](imgs/GAN_51273.jpg)
+
 ## VAEGAN results
 
 VAEGAN generation from noise:
@@ -75,6 +73,19 @@ VAEGAN autoencoder input:
 VAEGAN autoencoder reconstruction:
 
 ![](imgs/autoencoder_output.jpg)
+
+VAEGAN generation from noise:
+
+![](imgs/generator_out_633.jpg)
+
+VAEGAN autoencoder input:
+
+![](imgs/autoencoder_input_633.jpg)
+
+VAEGAN autoencoder reconstruction:
+
+![](imgs/autoencoder_output_633.jpg)
+
 
 
 ## VAEGAN results with Checkerboard Artifacts
@@ -90,8 +101,3 @@ VAEGAN autoencoder input:
 VAEGAN autoencoder reconstruction:
 
 ![](imgs/autoencoder_output_grid.jpg)
-
-## Problems Encountered
-
-- Hard to train.
-- Numerical instability in loss.
