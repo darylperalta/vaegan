@@ -31,11 +31,11 @@ VAEGAN discriminator model:
 
 <img src="imgs/vaegan_discriminator.png" width="300">
 
-VAEGAN encoder model for training:
+VAEGAN encoder model for training (only the encoder is trainable):
 
 <img src="imgs/model1_enc.png" width="400">
 
-VAEGAN decoder model for training:
+VAEGAN decoder model for training (only the decoder is trainable):
 
 <img src="imgs/model2_dec.png" width="400">
 
