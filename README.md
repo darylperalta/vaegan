@@ -21,11 +21,11 @@ Implementation of [Autoencoding beyond pixels using a learned similarity metric]
 
 VAEGAN encoder model:
 
-<img src="imgs/vaegan_encoder_complete.png" width="500">
+<img src="imgs/vaegan_encoder_complete.png" width="600">
 
 VAEGAN decoder model:
 
-<img src="imgs/vaegan_decoder_complete.png" width="500">
+<img src="imgs/vaegan_decoder_complete.png" width="400">
 
 VAEGAN discriminator model:
 
